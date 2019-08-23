@@ -484,18 +484,11 @@ class Downloader():
     def download(self):
 
         import os
- 
         import requests
-         
-        #bar = Progressbar(self.frame, length=200)
-         
-        #r = requests.get(url, stream=True)
-
-        #import requests
- 
-        url = "https://bb.ringingworld.co.uk/export.php?ringer=sam%2A+sen%2A&fmt=pdf"
         
-        url = "https://bb.ringingworld.co.uk/export.php?"
+        baseUrl = "https://bb.ringingworld.co.uk/export.php?"
+
+        url = baseUrl + "&association=" + self.options.entry["association"].get()#Southampton+University+Guild
 
         url += "ringer=" + self.options.entry["ringerName"].get()
 
