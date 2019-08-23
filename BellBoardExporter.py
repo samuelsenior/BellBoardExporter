@@ -53,6 +53,7 @@ class Entry():
     def sanatise(self):
         self.entryValue = self.entryValue.replace(" ", "+")
         self.entryValue = self.entryValue.replace("*", "%2A")
+        self.entryValue = self.entryValue.replace("/", "%2F")
 
     def update(self):
         self.entryValue = self.entry.get()
@@ -118,7 +119,7 @@ class Button():
         self.rowspan=rowspan
         self.sticky=sticky
 
-        self.button = tk.Button(frame, text='Click Me', highlightbackground='#3E4149', background=self.background, foreground=self.foreground,
+        self.button = tk.Button(frame, text=self.text, highlightbackground=self.background, background=self.background, foreground=self.foreground,
                                 command=self.clicked)
         self.button.grid(padx=self.padx, pady=self.pady,
                          column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
@@ -126,18 +127,6 @@ class Button():
 
 
     def clicked(self):
-        #lbl.configure(text="Button was clicked!!")
-        # update values in fields to variables storing them
-
-        # call function to make URL for downloading specific thing
-
-        # Download
-
-        #res = "Welcome to " + txt.get()
-        #lbl.configure(text=res)
-        #txt.configure(state="disabled")
-        print("Button clicked!")
-
         self.options.entry["ringerName"].update()
 
         print(self.options.entry["ringerName"].get())
@@ -147,12 +136,13 @@ class Button():
 
 
 class Combobox():
-    def __init__(self, frame, tag=None, menuOptions=None, foreground="black", background="white",
+    def __init__(self, frame, tag=None, menuOptions=None, width=None, foreground="black", background="white",
                  padx=10, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
         self.tag=tag,
         self.menuOptions = menuOptions
+        self.width = width
         self.foreground=foreground
         self.background=background
         self.padx=padx
@@ -166,10 +156,7 @@ class Combobox():
         self.menuValue = tk.StringVar()
         self.menuValue.set(self.menuOptions[0]) # default value
 
-        print(self.foreground)
-        print(self.background)
-
-        self.combobox = ttk.Combobox(frame, textvariable=self.menuValue, values=self.menuOptions, state='readonly')
+        self.combobox = ttk.Combobox(frame, textvariable=self.menuValue, values=self.menuOptions, width=width, state='readonly')
         self.combobox.configure(background=self.background, foreground=self.foreground)
 
         self.combobox.bind("<<ComboboxSelected>>", self.dropdown_callback)
@@ -243,14 +230,14 @@ class BBOption():
                                   foreground=foreground, background=background, padx=padx, pady=pady,
                                   column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
-    def add_combobox(self, tag, menuOptions=None,
+    def add_combobox(self, tag, menuOptions=None, width=None,
                      foreground="black", background=None, padx=10, pady=0,
                      column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
         if background is None:
             background = self.backgroundColour
 
-        self.combobox[tag] = Combobox(self.frame, tag=tag, menuOptions=menuOptions,
+        self.combobox[tag] = Combobox(self.frame, tag=tag, menuOptions=menuOptions, width=width,
                                       foreground=foreground, background=background, padx=padx, pady=pady,
                                       column=column, row=row, columnspan=columnspan, rowspan=rowspan,
                                       sticky=sticky)
@@ -366,6 +353,19 @@ class BB(tk.Frame):
         self.options.add_entry(tag="dateRungTo", width=10, padx=10, column=col_i+1, row=row_i+1)
         row_i += 1
 
+        row_i += 1
+        col_i = 0
+        self.options.add_label(tag="place", text="Place:", padx=5, column=col_i, row=row_i)
+        self.options.add_entry(tag="place", width=16, padx=10, column=col_i, row=row_i+1)
+
+        col_i += 1
+        self.options.add_label(tag="county", text="County (or Country):", padx=5, column=col_i, row=row_i)
+        self.options.add_entry(tag="county", width=16, padx=10, column=col_i, row=row_i+1)
+
+        col_i += 1
+        self.options.add_label(tag="dedication", text="Dedication (or Address):", padx=5, column=col_i, row=row_i)
+        self.options.add_entry(tag="dedication", width=16, padx=10, column=col_i, row=row_i+1)
+        row_i += 1
 
         row_i += 1
         col_i = 0
@@ -386,7 +386,7 @@ class BB(tk.Frame):
         col_i += 1
         self.options.add_label(tag="bellType", text="Type (Tower or Hand):", padx=5, column=col_i, row=row_i)
         bellTypeOptions = ["Tower and Hand", "Handbells Only", "Tower Bells Only"]
-        self.options.add_combobox(tag="bellTypeOptions", menuOptions=bellTypeOptions, column=col_i, row=row_i+1)
+        self.options.add_combobox(tag="bellTypeOptions", menuOptions=bellTypeOptions, width=15, column=col_i, row=row_i+1)
         #self.options.add_checkbox(tag="towerAndHand", text="Tower and Hand", column=col_i, row=row_i+1)
         #self.options.add_checkbox(tag="handbellsOnly", text="Handbells Only", column=col_i, row=row_i+2)
         #self.options.add_checkbox(tag="towerBellsOnly", text="Tower Bells Only", column=col_i, row=row_i+3)
@@ -441,7 +441,7 @@ class BB(tk.Frame):
         menuOptions = ["Date Rung", "Date Submitted", "Place", "Length",
                        "Duration", "Peal Speed", "Method (or Title)",
                        "Score From Likes", "Number of Likes", "Performance Views"]
-        self.advancedOptions.add_combobox(tag="orderByMenu", menuOptions=menuOptions)
+        self.advancedOptions.add_combobox(tag="orderByMenu", menuOptions=menuOptions, width=15, column=col_i, row=row_i+1)
         #self.advancedOptions.add_checkbox(tag="orderByDateRung", text="Date Rung", column=col_i+1, row=row_i+1)
         #self.advancedOptions.add_checkbox(tag="orderByDateSubmitted", text="Date Submitted", column=col_i, row=row_i+1)
         #self.advancedOptions.add_checkbox(tag="orderByPlace", text="Place", column=col_i+1, row=row_i+2)
@@ -465,7 +465,8 @@ class BB(tk.Frame):
 
         self.downloadOptions.add_checkbox(tag="downloadPDF", text="Download as PDF", checkState=True, column=4, row=3)
         self.downloadOptions.add_checkbox(tag="downloadCSV", text="Download as CSV", checkState=True, column=5, row=3)
-        self.downloadOptions.add_button(tag="downloadbutton", options=self.options, command=self.downloader.download, text="Click here!", column=4, row=4)
+        self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download, column=4, row=4,
+                                        columnspan=2)
 
 
 class Downloader():
@@ -486,34 +487,37 @@ class Downloader():
         import os
         import requests
         
-        baseUrl = "https://bb.ringingworld.co.uk/export.php?"
+        if self.options.entry["ringerName"].get() == "" and self.options.entry["conductorName"].get() == "" and self.options.entry["composerName"].get() == "":
+            print('Error: Need at least one of "Ringer", "Conductor", or "Composer" to be filled in!')
+        else:
 
-        url = baseUrl + "&association=" + self.options.entry["association"].get()#Southampton+University+Guild
+            baseUrl = "https://bb.ringingworld.co.uk/export.php?"
 
-        url += "ringer=" + self.options.entry["ringerName"].get()
+            # Association
+            url = baseUrl + "&association=" + self.options.entry["association"].get()#Southampton+University+Guild
 
-        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-            url += "&fmt=" + "pdf"
+            # Ringer Name
+            url += "&ringer=" + self.options.entry["ringerName"].get()
 
-        if self.advancedOptions.checkbox["reverseResults"].checkState is True:
-            url += "&order=+reverse"
+            # From
+            url += "&from=" + self.options.entry["dateRungFrom"].get()
 
-        print('"{}"'.format(url))
+            # To
+            url += "&to=" + self.options.entry["dateRungTo"].get()
 
-        myfile = requests.get(url)
-         
-        open('testing.pdf', 'wb').write(myfile.content)
+            # Reverse results
+            if self.advancedOptions.checkbox["reverseResults"].checkState is True:
+                url += "&order=+reverse"
 
-         
-        #with open("LearnPython.pdf", "wb") as Pypdf:
-        # 
-        # #   total_length = int(r.headers.get('content-length'))
-        # #
-        # #   for ch in progress.bar(r.iter_content(chunk_size = 2391975), expected_size=(total_length/1024) + 1):
-        # #
-        # #       if ch:
-        # #
-        #    #        Pypdf.write(ch)
+            # Download as PDF?
+            if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                url += "&fmt=" + "pdf"
+
+
+            print('"{}"'.format(url))
+
+            myfile = requests.get(url)
+            open('testing.pdf', 'wb').write(myfile.content)
 
 
 if __name__ == "__main__":
