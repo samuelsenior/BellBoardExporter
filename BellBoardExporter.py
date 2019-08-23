@@ -1,9 +1,10 @@
 import tkinter as tk
+from tkinter import ttk
 
 
 class Label():
     def __init__(self, frame, text=None, font=("Arial Bold", 14),
-                 foreground="black", background="#3E4149",
+                 foreground="black", background="white",
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -66,7 +67,7 @@ class Entry():
         print(self.entryValue)
 
 class Checkbutton():
-    def __init__(self, frame, tag=None, text=None, checkState=False, foreground="black", background="#3E4149",
+    def __init__(self, frame, tag=None, text=None, checkState=False, foreground="black", background="white",
                  padx=10, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -99,7 +100,7 @@ class Checkbutton():
             print("{} is {}".format(self.tag, self.chk_state_var.get()))
 
 class Button():
-    def __init__(self, frame, options, tag=None, text=None, foreground="black", background="#3E4149", command=None,
+    def __init__(self, frame, options, tag=None, text=None, foreground="black", background="white", command=None,
                  padx=10, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -145,19 +146,65 @@ class Button():
             self.command()
 
 
+class Combobox():
+    def __init__(self, frame, tag=None, menuOptions=None, foreground="black", background="white",
+                 padx=10, pady=0,
+                 column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+
+        self.tag=tag,
+        self.menuOptions = menuOptions
+        self.foreground=foreground
+        self.background=background
+        self.padx=padx
+        self.pady=pady
+        self.column=column
+        self.row=row
+        self.columnspan=columnspan
+        self.rowspan=rowspan
+        self.sticky=sticky
+
+        self.menuValue = tk.StringVar()
+        self.menuValue.set(self.menuOptions[0]) # default value
+
+        print(self.foreground)
+        print(self.background)
+
+        self.combobox = ttk.Combobox(frame, textvariable=self.menuValue, values=self.menuOptions, state='readonly')
+        self.combobox.configure(background=self.background, foreground=self.foreground)
+
+        self.combobox.bind("<<ComboboxSelected>>", self.dropdown_callback)
+
+        self.combobox.grid(padx=self.padx, pady=self.pady,
+                             column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
+                             sticky=self.sticky)
+
+    def get(self):
+        return self.menuValue.get()
+
+    def dropdown_callback(self, selected=None):
+        print("{} set to {}".format(self.tag[0], self.menuValue.get()))
+        if len(self.tag) > 1:
+            print("Warning: tag with unexpected length: {}".format(self.tag))
+
 
 class BBOption():
-    def __init__(self, frame):
+    def __init__(self, frame, background):
         self.frame = frame
+        self.backgroundColour = background
+        del background
         self.label = {}
         self.entry = {}
         self.checkbox = {}
         self.button = {}
+        self.combobox = {}
 
 
     def add_label(self, tag, text=None, font=("Arial Bold", 14),
-                  foreground="black", background="#3E4149", padx=0, pady=0,
+                  foreground="black", background=None, padx=0, pady=0,
                   column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+
+        if background is None:
+            background = self.backgroundColour
 
         self.label[tag] = Label(self.frame, text=text, font=font,
                                 foreground=foreground, background=background,
@@ -173,8 +220,11 @@ class BBOption():
                                 column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
     def add_checkbox(self, tag, text=None, checkState=False,
-                     foreground="black", background="#3E4149", padx=10, pady=0,
+                     foreground="black", background=None, padx=10, pady=0,
                      column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+
+        if background is None:
+            background = self.backgroundColour
 
         self.checkbox[tag] = Checkbutton(self.frame, tag=tag, text=text, checkState=checkState,
                                          foreground=foreground, background=background,
@@ -182,12 +232,28 @@ class BBOption():
                                          column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
     def add_button(self, tag, options, text=None, command=None,
-                   foreground="black", background="#3E4149", padx=10, pady=0,
+                   foreground="black", background=None, padx=10, pady=0,
                    column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+
+
+        if background is None:
+            background = self.backgroundColour
 
         self.button[tag] = Button(self.frame, tag=tag, options=options, text=text, command=command,
                                   foreground=foreground, background=background, padx=padx, pady=pady,
                                   column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
+
+    def add_combobox(self, tag, menuOptions=None,
+                     foreground="black", background=None, padx=10, pady=0,
+                     column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+
+        if background is None:
+            background = self.backgroundColour
+
+        self.combobox[tag] = Combobox(self.frame, tag=tag, menuOptions=menuOptions,
+                                      foreground=foreground, background=background, padx=padx, pady=pady,
+                                      column=column, row=row, columnspan=columnspan, rowspan=rowspan,
+                                      sticky=sticky)
 
 
 class Menu():
@@ -209,16 +275,23 @@ class BB(tk.Frame):
         from platform import system
 
         self.programTitle = "Bell Board Exporter - v0.0.1"
-        self.backgroundColour = "#3E4149"
+        self.backgroundColour = "#474641"##3E4149"
 
         tk.Frame.__init__(self, root)
         root.configure(background=self.backgroundColour)
-        root.geometry('800x600')
+        root.geometry('1000x700')
         root.title(self.programTitle)
+
         menu = Menu(root)
 
         self.canvas = tk.Canvas(root, borderwidth=0, background=self.backgroundColour)
         self.frame = tk.Frame(self.canvas, background=self.backgroundColour)
+
+
+        self.frame.columnconfigure(0, weight=1)
+        self.frame.columnconfigure(1, weight=1)
+
+
         self.vsb = tk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.vsb.set)
 
@@ -276,10 +349,11 @@ class BB(tk.Frame):
     def populate(self):
         row_i = 0
         col_i = 0
-        lbl_title = Label(self.frame, text=self.programTitle, font=("Arial Bold", 24), padx=5, column=col_i, row=row_i, columnspan=2)
+        lbl_title = Label(self.frame, text=self.programTitle, font=("Arial Bold", 24), background=self.backgroundColour,
+                          padx=5, column=col_i, row=row_i, columnspan=2)
         row_i += 1
         col_i = 0
-        self.options = BBOption(self.frame)
+        self.options = BBOption(self.frame, self.backgroundColour)
         self.options.add_label(tag="association", text="Association:", padx=5, column=col_i, row=row_i, columnspan=2)
         self.options.add_entry(tag="association", width=32, padx=10, column=col_i, row=row_i+1, columnspan=2)
         row_i += 1
@@ -311,9 +385,11 @@ class BB(tk.Frame):
 
         col_i += 1
         self.options.add_label(tag="bellType", text="Type (Tower or Hand):", padx=5, column=col_i, row=row_i)
-        self.options.add_checkbox(tag="towerAndHand", text="Tower and Hand", column=col_i, row=row_i+1)
-        self.options.add_checkbox(tag="handbellsOnly", text="Handbells Only", column=col_i, row=row_i+2)
-        self.options.add_checkbox(tag="towerBellsOnly", text="Tower Bells Only", column=col_i, row=row_i+3)
+        bellTypeOptions = ["Tower and Hand", "Handbells Only", "Tower Bells Only"]
+        self.options.add_combobox(tag="bellTypeOptions", menuOptions=bellTypeOptions, column=col_i, row=row_i+1)
+        #self.options.add_checkbox(tag="towerAndHand", text="Tower and Hand", column=col_i, row=row_i+1)
+        #self.options.add_checkbox(tag="handbellsOnly", text="Handbells Only", column=col_i, row=row_i+2)
+        #self.options.add_checkbox(tag="towerBellsOnly", text="Tower Bells Only", column=col_i, row=row_i+3)
         row_i += 9
 
         row_i += 1
@@ -329,7 +405,7 @@ class BB(tk.Frame):
         row_i += 1
         col_i = 0
 
-        self.advancedOptions = BBOption(self.frame)
+        self.advancedOptions = BBOption(self.frame, self.backgroundColour)
         self.advancedOptions.add_label(tag="bellRung", text="Bell Rung (e.g. 2 or n-1):", padx=5, column=col_i, row=row_i)
         self.advancedOptions.add_entry(tag="bellRung", width=16, padx=10, column=col_i, row=row_i+1)
         self.advancedOptions.add_label(tag="otherRinger", text="Other Ringer:", padx=5, column=col_i+1, row=row_i)
@@ -349,8 +425,6 @@ class BB(tk.Frame):
         self.advancedOptions.add_label(tag="footnote", text="Footnote (Contains Word):", padx=5, column=col_i, row=row_i)
         self.advancedOptions.add_entry(tag="footnote", width=16, padx=10, column=col_i, row=row_i+1)
 
-        #footnote.entry["footnote"].print()
-
         row_i -= 3
         col_i = 1
         self.advancedOptions.add_checkbox(tag="withPhoto", text="With Photo", column=col_i, row=row_i+1)
@@ -364,22 +438,26 @@ class BB(tk.Frame):
         row_i += 1
         col_i = 0
         self.advancedOptions.add_label(tag="orderBy", text="Order By:", padx=5, column=col_i, row=row_i)
-        self.advancedOptions.add_checkbox(tag="orderByDateRung", text="Date Rung", column=col_i+1, row=row_i+1)
-        self.advancedOptions.add_checkbox(tag="orderByDateSubmitted", text="Date Submitted", column=col_i, row=row_i+1)
-        self.advancedOptions.add_checkbox(tag="orderByPlace", text="Place", column=col_i+1, row=row_i+2)
-        self.advancedOptions.add_checkbox(tag="orderByLength", text="Length", column=col_i, row=row_i+2)
-        self.advancedOptions.add_checkbox(tag="orderByDuration", text="Duration", column=col_i+1, row=row_i+3)
-        self.advancedOptions.add_checkbox(tag="orderByPealSpeed", text="Peal Speed", column=col_i, row=row_i+3)
-        self.advancedOptions.add_checkbox(tag="orderByMethod(orTitle)", text="Method (or Title)", column=col_i+1, row=row_i+4)
-        self.advancedOptions.add_checkbox(tag="orderByScoreFromLikes", text="Score From Likes", column=col_i, row=row_i+4)
-        self.advancedOptions.add_checkbox(tag="orderByNumberOfLikes", text="Number of Likes", column=col_i+1, row=row_i+5)
-        self.advancedOptions.add_checkbox(tag="orderByPerformanceViews", text="Performance Views", column=col_i, row=row_i+5)
-        row_i += 11
+        menuOptions = ["Date Rung", "Date Submitted", "Place", "Length",
+                       "Duration", "Peal Speed", "Method (or Title)",
+                       "Score From Likes", "Number of Likes", "Performance Views"]
+        self.advancedOptions.add_combobox(tag="orderByMenu", menuOptions=menuOptions)
+        #self.advancedOptions.add_checkbox(tag="orderByDateRung", text="Date Rung", column=col_i+1, row=row_i+1)
+        #self.advancedOptions.add_checkbox(tag="orderByDateSubmitted", text="Date Submitted", column=col_i, row=row_i+1)
+        #self.advancedOptions.add_checkbox(tag="orderByPlace", text="Place", column=col_i+1, row=row_i+2)
+        #self.advancedOptions.add_checkbox(tag="orderByLength", text="Length", column=col_i, row=row_i+2)
+        #self.advancedOptions.add_checkbox(tag="orderByDuration", text="Duration", column=col_i+1, row=row_i+3)
+        #self.advancedOptions.add_checkbox(tag="orderByPealSpeed", text="Peal Speed", column=col_i, row=row_i+3)
+        #self.advancedOptions.add_checkbox(tag="orderByMethod(orTitle)", text="Method (or Title)", column=col_i+1, row=row_i+4)
+        #self.advancedOptions.add_checkbox(tag="orderByScoreFromLikes", text="Score From Likes", column=col_i, row=row_i+4)
+        #self.advancedOptions.add_checkbox(tag="orderByNumberOfLikes", text="Number of Likes", column=col_i+1, row=row_i+5)
+        #self.advancedOptions.add_checkbox(tag="orderByPerformanceViews", text="Performance Views", column=col_i, row=row_i+5)
+        row_i += 1#1
 
         self.advancedOptions.add_checkbox(tag="reverseResults", text="Reverse Order of Results", checkState=True, column=col_i, row=row_i+1)
 
     def populate_downloadOptions(self):
-        self.downloadOptions = BBOption(self.frame)
+        self.downloadOptions = BBOption(self.frame, self.backgroundColour)
         self.downloadOptions.add_label(tag="downloadOptions", text="Download Options:", font=("Arial Bold", 16), padx=5, column=4, row=0)
 
         self.downloadOptions.add_label(tag="savePath", text="Save Path:", padx=5, column=4, row=1, columnspan=2)
