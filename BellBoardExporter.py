@@ -2,9 +2,34 @@ import tkinter as tk
 from tkinter import ttk
 
 
+class Text():
+    def __init__(self, frame, startingText=None, width=None, height=None,
+                 padx=0, pady=0,
+                 column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+        from tkinter import ttk, DISABLED, NORMAL, END
+        ...
+        self.startingText = startingText
+        self.width=height
+        self.height=height
+        self.padx = padx
+        self.pady = pady
+        self.column = column
+        self.row = row
+        self.columnspan=columnspan
+
+        self.rowspan=rowspan
+        self.info_text = tk.Text(frame, bg="grey", width=self.width, height=self.height)
+        self.info_text.insert(
+            END, self.startingText+"\n")
+        self.info_text.config(state=DISABLED)
+        self.info_text.grid(column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan, padx=self.padx, pady=self.pady)
+        ...
+
+
 class Label():
     def __init__(self, frame, text=None, font=("Arial Bold", 14),
                  foreground="black", background="white",
+                 width=None, height=None,
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -12,6 +37,8 @@ class Label():
         self.font = font
         self.foreground = foreground
         self.background = background
+        self.width = width
+        self.height = height
         self.padx = padx
         self.pady = pady
         self.column = column
@@ -20,17 +47,50 @@ class Label():
         self.rowspan = rowspan
         self.sticky = sticky
 
-        self.label = tk.Label(frame, text=self.text, font=self.font, fg=self.foreground, bg=self.background)
+        self.label = tk.Label(frame, text=self.text, font=self.font, fg=self.foreground, bg=self.background, width=self.width, height=self.height)
         self.label.grid(padx=self.padx, pady=self.pady,
                         column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
                         sticky=self.sticky)
 
+    def update(self, text):
+        self.label.configure(text=text)
 
-class Entry():
-    def __init__(self, frame, width=None, state="normal", foreground="black", background="white",##3E4149",
+class LabelFrame():
+    def __init__(self, frame, text=None, font=("Arial Bold", 14),
+                 foreground="black", background="white",
+                 width=None, height=None,
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
+        self.text = text
+        self.font = font
+        self.foreground = foreground
+        self.background = background
+        self.width = width
+        self.height = height
+        self.padx = padx
+        self.pady = pady
+        self.column = column
+        self.row = row
+        self.columnspan = columnspan
+        self.rowspan = rowspan
+        self.sticky = sticky
+
+        self.label = tk.LabelFrame(frame, text=self.text, font=self.font, fg=self.foreground, bg=self.background, width=self.width, height=self.height)
+        self.label.grid(padx=self.padx, pady=self.pady,
+                        column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
+                        sticky=self.sticky)
+
+    def update(self, text):
+        self.label.configure(text=self.text+text)
+
+
+class Entry():
+    def __init__(self, frame, sanatiseEntry=True, width=None, state="normal", foreground="black", background="white",##3E4149",
+                 padx=0, pady=0,
+                 column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+
+        self.sanatiseEntry = sanatiseEntry
         self.width=width
         self.state=state,
         self.foreground=foreground,
@@ -51,9 +111,10 @@ class Entry():
                         sticky=self.sticky)
 
     def sanatise(self):
-        self.entryValue = self.entryValue.replace(" ", "+")
-        self.entryValue = self.entryValue.replace("*", "%2A")
-        self.entryValue = self.entryValue.replace("/", "%2F")
+        if self.sanatiseEntry == True:
+            self.entryValue = self.entryValue.replace(" ", "+")
+            self.entryValue = self.entryValue.replace("*", "%2A")
+            self.entryValue = self.entryValue.replace("/", "%2F")
 
     def update(self):
         self.entryValue = self.entry.get()
@@ -100,6 +161,12 @@ class Checkbutton():
         else:
             print("{} is {}".format(self.tag, self.chk_state_var.get()))
 
+    def get(self):
+        return self.chk_state_var.get()
+
+    def set(self, value):
+        self.chk_state_var.set(value)
+
 class Button():
     def __init__(self, frame, options, tag=None, text=None, foreground="black", background="white", command=None,
                  padx=10, pady=0,
@@ -129,7 +196,7 @@ class Button():
     def clicked(self):
         self.options.entry["ringerName"].update()
 
-        print(self.options.entry["ringerName"].get())
+        #print(self.options.entry["ringerName"].get())
 
         if self.command is not None:
             self.command()
@@ -187,6 +254,7 @@ class BBOption():
 
 
     def add_label(self, tag, text=None, font=("Arial Bold", 14),
+                  width=None, height=None,
                   foreground="black", background=None, padx=0, pady=0,
                   column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -194,15 +262,30 @@ class BBOption():
             background = self.backgroundColour
 
         self.label[tag] = Label(self.frame, text=text, font=font,
+                                width=width, height=height,
                                 foreground=foreground, background=background,
                                 padx=padx, pady=pady,
                                 column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
-    def add_entry(self, tag, width=None, state="normal",
+    def add_labelFrame(self, tag, text=None, font=("Arial Bold", 14),
+                  width=None, height=None,
+                  foreground="black", background=None, padx=0, pady=0,
+                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+
+        if background is None:
+            background = self.backgroundColour
+
+        self.label[tag] = LabelFrame(self.frame, text=text, font=font,
+                                     width=width, height=height,
+                                     foreground=foreground, background=background,
+                                    padx=padx, pady=pady,
+                                    column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
+
+    def add_entry(self, tag, sanatiseEntry=True, width=None, state="normal",
                   foreground="black", background="white", padx=0, pady=0,
                   column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
-        self.entry[tag] = Entry(self.frame, width=width, state=state, foreground=foreground, background=background,
+        self.entry[tag] = Entry(self.frame, sanatiseEntry=sanatiseEntry, width=width, state=state, foreground=foreground, background=background,
                                 padx=padx, pady=pady,
                                 column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
@@ -261,12 +344,12 @@ class BB(tk.Frame):
 
         from platform import system
 
-        self.programTitle = "Bell Board Exporter - v0.0.1"
+        self.programTitle = "Bell Board Exporter - v1.0.0"
         self.backgroundColour = "#474641"##3E4149"
 
         tk.Frame.__init__(self, root)
         root.configure(background=self.backgroundColour)
-        root.geometry('1000x700')
+        root.geometry('1300x800')
         root.title(self.programTitle)
 
         menu = Menu(root)
@@ -282,6 +365,9 @@ class BB(tk.Frame):
         self.vsb = tk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.vsb.set)
 
+        #self.hsb = tk.Scrollbar(root, orient="horizontal", command=self.canvas.xview)
+        #self.canvas.configure(xscrollcommand=self.hsb.set)
+
         if system() == "Windows":
             self.canvas.bind_all("<MouseWheel>", self._onMousewheel_windows)
 
@@ -296,6 +382,7 @@ class BB(tk.Frame):
             self.canvas.bind_all("<MouseWheel>", self._on_mousewheel_windows)
 
         self.vsb.pack(side="right", fill="y")
+        #self.hsb.pack(side="bottom", fill="x")
         self.canvas.pack(side="left", fill="both", expand=True)
         self.canvas.create_window((4,4), window=self.frame, anchor="nw", 
                                   tags="self.frame")
@@ -312,6 +399,21 @@ class BB(tk.Frame):
         self.populate_downloadOptions()
         self.downloader.update_Download(self.downloadOptions)
 
+
+        self.info_text = Text(self.frame, startingText=self.programTitle+"\nOutput Window:", column=4, row=5, columnspan=10, rowspan=16, padx=10)
+        import sys
+        # If .buf exists, clear it.
+        with open('.buf', 'w'):
+            pass
+        # Set stdout to output to .buf
+        # This allows us to display a virtual terminal
+        # that intercepts print(info) statements from imported classes
+        sys.stdout = open(".buf", 'a')
+
+        # Check and refresh buf -- see function for details
+        self.read_std_out()
+        #sys.stdout = WriteToWindow(self.downloadOptions.label["terminalOutput"].update)
+
         self.downloader.download()
 
 
@@ -321,16 +423,18 @@ class BB(tk.Frame):
 
     def _onMousewheel_windows(self, event):
         '''Enable frame scrolling for Windows'''
+        #self.canvas.xview_scroll(int(-1*(event.delta/120)), "units")
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         
     def _onMousewheel_linux(self, event):
         '''Enable frame scrolling for Linux'''
+        #self.canvas.xview_scroll(int(-1*(event.delta/120)), "units")
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def _onMousewheel_mac(self, event):
         '''Enable frame scrolling for Mac'''
+        #self.canvas.xview_scroll(int(-1*(event.delta)), "units")
         self.canvas.yview_scroll(int(-1*(event.delta)), "units")
-
 
 
     def populate(self):
@@ -386,7 +490,7 @@ class BB(tk.Frame):
         col_i += 1
         self.options.add_label(tag="bellType", text="Type (Tower or Hand):", padx=5, column=col_i, row=row_i)
         bellTypeOptions = ["Tower and Hand", "Handbells Only", "Tower Bells Only"]
-        self.options.add_combobox(tag="bellTypeOptions", menuOptions=bellTypeOptions, width=15, column=col_i, row=row_i+1)
+        self.options.add_combobox(tag="bellType", menuOptions=bellTypeOptions, width=15, column=col_i, row=row_i+1)
         #self.options.add_checkbox(tag="towerAndHand", text="Tower and Hand", column=col_i, row=row_i+1)
         #self.options.add_checkbox(tag="handbellsOnly", text="Handbells Only", column=col_i, row=row_i+2)
         #self.options.add_checkbox(tag="towerBellsOnly", text="Tower Bells Only", column=col_i, row=row_i+3)
@@ -461,12 +565,46 @@ class BB(tk.Frame):
         self.downloadOptions.add_label(tag="downloadOptions", text="Download Options:", font=("Arial Bold", 16), padx=5, column=4, row=0)
 
         self.downloadOptions.add_label(tag="savePath", text="Save Path:", padx=5, column=4, row=1, columnspan=2)
-        self.downloadOptions.add_entry(tag="savePath", width=32, padx=10, column=4, row=1+1, columnspan=2)
+        self.downloadOptions.add_entry(tag="savePath", sanatiseEntry=False, width=62, padx=10, column=4, row=1+1, columnspan=5)
 
         self.downloadOptions.add_checkbox(tag="downloadPDF", text="Download as PDF", checkState=True, column=4, row=3)
         self.downloadOptions.add_checkbox(tag="downloadCSV", text="Download as CSV", checkState=True, column=5, row=3)
         self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download, column=4, row=4,
                                         columnspan=2)
+
+        #self.downloadOptions.add_label(tag="terminalOutputTitle", text="Output:", font=("Arial Bold", 14), padx=5, column=4, row=5)
+        #self.downloadOptions.add_label(tag="terminalOutput", text="Testing", background="white", font=("Arial", 14), column=4, row=6)#, width=37, height=10, padx=10, column=4, row=6, columnspan=5, rowspan=8)
+
+
+
+    def read_std_out(self):
+        """Put stdout messages into the info_box. Called once, auto-refreshes"""
+        import sys
+        sys.stdout.flush()  # Force write
+        with open('.buf', 'r') as buf:
+            read = buf.read()
+            if read:  # Do not write if empty
+                self.add_info(read)
+        with open('.buf', 'w'):
+            pass  # Clear file
+
+        sys.stdout = open(".buf", 'a')
+        self.after(500, self.read_std_out)  # Call this again soon
+
+    def add_info(self, info):
+        """Add informational message to info box. Use instead of print().
+        arguments: (str) info
+        effects: add line with info printed to screen in info box"""
+        from tkinter import DISABLED, NORMAL, END
+
+        # A basic bit of sanatising:
+        #info = info.replace('\n', '').replace('\r', '')
+
+        self.info_text.info_text.config(state=NORMAL)
+        info = "> " + str(info) + "\n"
+        self.info_text.info_text.insert(END, info)
+        self.info_text.info_text.see(END)
+        self.info_text.info_text.config(state=DISABLED)
 
 
 class Downloader():
@@ -483,41 +621,148 @@ class Downloader():
 
 
     def download(self):
-
-        import os
-        import requests
-        
         if self.options.entry["ringerName"].get() == "" and self.options.entry["conductorName"].get() == "" and self.options.entry["composerName"].get() == "":
-            print('Error: Need at least one of "Ringer", "Conductor", or "Composer" to be filled in!')
+            print('Error: Need at least one of Ringer, Conductor, or Composer to be filled in!')
         else:
 
-            baseUrl = "https://bb.ringingworld.co.uk/export.php?"
+            self.urlOptions = {"Association":self.options.entry["association"].get(),
+                               "From":self.options.entry["dateRungFrom"].get(),
+                               "To":self.options.entry["dateRungTo"].get(),
+                               "Place":self.options.entry["place"].get(),
+                               "County":self.options.entry["county"].get(),
+                               "Dedication":self.options.entry["dedication"].get(),
+                               "Method":self.options.entry["ringingMethod"].get(),
+                               "Bell Type":self.options.combobox["bellType"].get(),
+                               "Ringer Name":self.options.entry["ringerName"].get(),
+                               "Conductor Name":self.options.entry["conductorName"].get(),
+                               "Composer Name":self.options.entry["composerName"].get()}
+            self.baseUrl = "https://bb.ringingworld.co.uk/export.php?"
 
-            # Association
-            url = baseUrl + "&association=" + self.options.entry["association"].get()#Southampton+University+Guild
-
-            # Ringer Name
-            url += "&ringer=" + self.options.entry["ringerName"].get()
-
-            # From
+            url = self.baseUrl + "&association=" + self.options.entry["association"].get()
             url += "&from=" + self.options.entry["dateRungFrom"].get()
-
-            # To
             url += "&to=" + self.options.entry["dateRungTo"].get()
+            url += "&place=" + self.options.entry["place"].get()
+            url += "&region=" + self.options.entry["county"].get()
+            url += "&address=" + self.options.entry["dedication"].get()
+
+            ### Length
+
+            url += "&title=" + self.options.entry["ringingMethod"].get()
+            if self.options.combobox["bellType"].get() == "Tower and Hand":
+                pass
+            elif self.options.combobox["bellType"].get() == "Handbells Only":
+                url += "&bells_type=hand"
+            elif self.options.combobox["bellType"].get() == "Tower Bells Only":
+               url +=  "&bells_type=tower"
+            url += "&ringer=" + self.options.entry["ringerName"].get()
+            url += "&conductor=" + self.options.entry["conductorName"].get()
+            url += "&composer=" + self.options.entry["composerName"].get()
+
+            # Advanced Options
+            # Bell Rung
+
+            # Other Ringer
+
+            # Other Ringer's Bell
+
+            # Composition Details
+
+            # Footnote
+
+            # Tick boxes
+            # With Photo
+            #
+            # With Composition
+            #
+            # Machine Readable Composition
+            #
+            # Exclude Non-Compliant Performances
+            #
+            # Ringer is Conductor
+            #
+            # Ringer is Strapper
+
+            # Order Rung
 
             # Reverse results
+            #Tested
             if self.advancedOptions.checkbox["reverseResults"].checkState is True:
                 url += "&order=+reverse"
 
-            # Download as PDF?
-            if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                url += "&fmt=" + "pdf"
+            self.urlBefore = "{}".format(url)
+            for length in self.options.checkbox:
+                if self.options.checkbox[length].get() == True:
+                    url += "&length="
+                    if length == "allRingingLengths":
+                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
+                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                    elif length == "shortTouchesRingingLengths":
+                        url += "short"
+                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
+                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                    elif length == "quarterRingingLengths":
+                        url += "quarter"
+                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
+                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                    elif length == "quartersOrLongerRingingLengths":
+                        url += "q-or-p"
+                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
+                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                    elif length == "dateTouchesRingingLengths":
+                        url += "date"
+                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
+                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                    elif length == "halfPealRingingLengths":
+                        url += "half"
+                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
+                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                    elif length == "pealRingingLengths":
+                        url += "peal"
+                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
+                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                    elif length == "longLengthsRingingLengths":
+                        url += "long"
+                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
+                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
+                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
 
+                url = "{}".format(self.urlBefore)
 
-            print('"{}"'.format(url))
+    def download_url(self, url, saveName, downloadPDF=True, downloadCSV=True):
+        import os
+        import requests
 
-            myfile = requests.get(url)
-            open('testing.pdf', 'wb').write(myfile.content)
+        print("Using Options:")
+        for key in self.urlOptions:
+            if self.urlOptions[key] == "":
+                pass
+            else:
+                print("   {}: {}".format(key, self.urlOptions[key]))
+        if downloadPDF == True:
+            print("Saving to file: {}".format(saveName+'.pdf'))
+            myfile = requests.get(url+"&fmt="+"pdf")
+            open(saveName+'.pdf', 'wb').write(myfile.content)
+            print("Done!")
+        if downloadCSV == True:
+            print("Saving to file: {}".format(saveName+'.csv'))
+            myfile = requests.get(url+"&fmt="+"csv")
+            open(saveName+'.csv', 'wb').write(myfile.content)
+            print("Done!")
 
 
 if __name__ == "__main__":
