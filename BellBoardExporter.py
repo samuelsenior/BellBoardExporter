@@ -553,20 +553,6 @@ class BB(tk.Frame):
         import sys
         from platform import system
 
-        if system() == "Windows":
-            system_ = system()
-
-        elif system() == "Linux":
-            self.canvas.bind_all("<MouseWheel>", self._onMousewheel_linux)
-
-        elif system() == "Darwin":
-            self.canvas.bind_all("<MouseWheel>", self._onMousewheel_mac)
-
-        else:
-            print("Warning: Could not determine OS platform, assuming Windows")
-            self.canvas.bind_all("<MouseWheel>", self._on_mousewheel_windows)
-
-
         # determine if application is a script file or frozen exe
         if getattr(sys, 'frozen', False):
             application_path = os.path.dirname(sys.executable)
