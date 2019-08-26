@@ -569,11 +569,9 @@ class BB(tk.Frame):
 
         # Check to see if trailing slash
         if self.programDirectory[-1] == "/" or self.programDirectory[-1] == "/":
-            print("Already slash here!")
+            pass
         else:
-            print("Oh no, no slash!!")
             self.programDirectory = os.path.join(self.programDirectory, "")
-        print(self.programDirectory)
 
     def _onResize(self, event):
         """
@@ -643,14 +641,14 @@ class BB(tk.Frame):
         row_i += 1
         col_i = 0
         self.options.add_label(tag="ringingLength", text="Lengths:", padx=5, column=col_i, row=row_i)
-        self.options.add_checkbox(tag="allRingingLengths", text="All Lengths", checkState=True, column=col_i, row=row_i+1)
-        self.options.add_checkbox(tag="shortTouchesRingingLengths", text="Short Touches", column=col_i, row=row_i+2)
-        self.options.add_checkbox(tag="quarterRingingLengths", text="Quarter Peals", column=col_i, row=row_i+3)
-        self.options.add_checkbox(tag="quartersOrLongerRingingLengths", text="Qtrs or Longer", column=col_i, row=row_i+4)
-        self.options.add_checkbox(tag="dateTouchesRingingLengths", text="Date Touches", column=col_i, row=row_i+6)
-        self.options.add_checkbox(tag="halfPealRingingLengths", text="Half Peals", column=col_i, row=row_i+7)
-        self.options.add_checkbox(tag="pealRingingLengths", text="Peals", column=col_i, row=row_i+8)
-        self.options.add_checkbox(tag="longLengthsRingingLengths", text="Long Lengths", column=col_i, row=row_i+9)
+        self.options.add_checkbox(tag="allLengths", text="All Lengths", checkState=True, column=col_i, row=row_i+1)
+        self.options.add_checkbox(tag="shortTouches", text="Short Touches", column=col_i, row=row_i+2)
+        self.options.add_checkbox(tag="quarters", text="Quarter Peals", column=col_i, row=row_i+3)
+        self.options.add_checkbox(tag="quartersOrLonger", text="Qtrs or Longer", column=col_i, row=row_i+4)
+        self.options.add_checkbox(tag="dateTouches", text="Date Touches", column=col_i, row=row_i+6)
+        self.options.add_checkbox(tag="halfPeals", text="Half Peals", column=col_i, row=row_i+7)
+        self.options.add_checkbox(tag="peals", text="Peals", column=col_i, row=row_i+8)
+        self.options.add_checkbox(tag="longLengths", text="Long Lengths", column=col_i, row=row_i+9)
 
         col_i += 1
         self.options.add_label(tag="ringingMethod", text="Method (or Performance Title):", padx=5, column=col_i, row=row_i)
@@ -811,14 +809,14 @@ class Downloader():
                                "Place":self.options.entry["place"].get(sanatise=False),
                                "County":self.options.entry["county"].get(sanatise=False),
                                "Dedication":self.options.entry["dedication"].get(sanatise=False),
-                               "All Lengths":self.options.checkbox["allRingingLengths"].get(),
-                               "Short Touches":self.options.checkbox["shortTouchesRingingLengths"].get(),
-                               "Quarter Peals":self.options.checkbox["quarterRingingLengths"].get(),
-                               "Qtrs or Longer":self.options.checkbox["quartersOrLongerRingingLengths"].get(),
-                               "Date Touches":self.options.checkbox["dateTouchesRingingLengths"].get(),
-                               "Half Peals":self.options.checkbox["halfPealRingingLengths"].get(),
-                               "Peals":self.options.checkbox["pealRingingLengths"].get(),
-                               "Long Lengths":self.options.checkbox["longLengthsRingingLengths"].get(),
+                               "All Lengths":self.options.checkbox["allLengths"].get(),
+                               "Short Touches":self.options.checkbox["shortTouches"].get(),
+                               "Quarter Peals":self.options.checkbox["quarters"].get(),
+                               "Qtrs or Longer":self.options.checkbox["quartersOrLonger"].get(),
+                               "Date Touches":self.options.checkbox["dateTouches"].get(),
+                               "Half Peals":self.options.checkbox["halfPeals"].get(),
+                               "Peals":self.options.checkbox["peals"].get(),
+                               "Long Lengths":self.options.checkbox["longLengths"].get(),
                                "Method":self.options.entry["ringingMethod"].get(sanatise=False),
                                "Bell Type":self.options.combobox["bellType"].get(),
                                "Ringer Name":self.options.entry["ringerName"].get(sanatise=False),
@@ -828,21 +826,15 @@ class Downloader():
                                "Bell Rung":self.advancedOptions.entry["bellRung"].get(sanatise=False),
                                "Other Ringer":self.advancedOptions.entry["otherRinger"].get(sanatise=False),
                                "Other Ringer's Bell":self.advancedOptions.entry["otherRingersBell"].get(sanatise=False),
-
-                               #comp details
                                "Composition Details":self.advancedOptions.entry["compDetails"].get(sanatise=False),
-                               #footnote
                                "Footnote":self.advancedOptions.entry["footnote"].get(),
-
                                "With Photo":self.advancedOptions.checkbox["withPhoto"].get(),
                                "With Composition":self.advancedOptions.checkbox["withComposition"].get(),
                                "Machine-Readable Composition":self.advancedOptions.checkbox["machineReadableComposition"].get(),
                                "Exclude Non-Compliant Performances":self.advancedOptions.checkbox["excludedNonCompliantPerformances"].get(),
                                "Ringer is Conductor":self.advancedOptions.checkbox["ringerIsConductor"].get(),
                                "Ringer is Strapper":self.advancedOptions.checkbox["ringerIsStrapper"].get(),
-
                                "Order By":self.advancedOptions.combobox["orderByMenu"].get(),
-
                                "Reverse Results":self.advancedOptions.checkbox["reverseResults"].get(),
 
                                "PDF":self.downloadOptions.checkbox["downloadPDF"].get(),
@@ -926,41 +918,41 @@ class Downloader():
             for length in self.options.checkbox:
                 if self.options.checkbox[length].get() == True:
                     url += "&length="
-                    if length == "allRingingLengths":
+                    if length == "allLengths":
                         self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
-                    elif length == "shortTouchesRingingLengths":
+                    elif length == "shortTouches":
                         url += "short"
                         self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
-                    elif length == "quarterRingingLengths":
+                    elif length == "quarters":
                         url += "quarter"
                         self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
-                    elif length == "quartersOrLongerRingingLengths":
+                    elif length == "quartersOrLonger":
                         url += "q-or-p"
                         self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
-                    elif length == "dateTouchesRingingLengths":
+                    elif length == "dateTouches":
                         url += "date"
                         self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
-                    elif length == "halfPealRingingLengths":
+                    elif length == "halfPeals":
                         url += "half"
                         self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
-                    elif length == "pealRingingLengths":
+                    elif length == "peals":
                         url += "peal"
                         self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
-                    elif length == "longLengthsRingingLengths":
+                    elif length == "longLengths":
                         url += "long"
                         self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
