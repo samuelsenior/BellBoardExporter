@@ -459,6 +459,51 @@ class Buffer():
             self.buf += "> " + value + "\n"
 
 
+class Logger():
+    """
+    The Logger class.
+    """
+    def __init__(self, after, after_cancel, startingText="", logFileName="log.txt", logWriteRate=500, logging=True):
+        self.after = after
+        self.after_cancel = after_cancel
+        self.logFileName = logFileName
+        self.logWriteRate = logWriteRate
+
+        self.buffer = startingText
+        if self.buffer != "":
+            self.buffer += "\n"
+        self.logging = logging
+
+        self.after_id = None
+
+        with open(self.logFileName, "w+"):
+            pass  # Create/clear the logging file
+
+    def write(self, text):
+        self.buffer += text
+
+    def clear(self):
+
+        self.buffer = ""
+
+    def start(self):
+        self.logging = True
+        self._write()
+
+    def stop(self):
+        self.logging = False
+        self.after_cancel(self.after_id)
+
+    def _write(self):
+        # Printer to file here
+        if self.buffer != "" and self.logging == True:
+            with open(self.logFileName, 'a') as logFile:
+                logFile.write(self.buffer)
+                logFile.flush()
+            self.clear()
+        self.after_id = self.after(self.logWriteRate, self._write)
+
+
 class BB(tk.Frame):
     """
     The BB (BellBoard) class.
@@ -536,6 +581,9 @@ class BB(tk.Frame):
             self.info_text = info_text
             # Create Buffer class object
             self.buf = Buffer()
+            self.log = Logger(after=self.after, after_cancel=self.after_cancel, startingText=self.programTitle,
+                              logFileName=self.programDirectory+"log.txt", logWriteRate=500)
+            self.log.start()
             # Set stdout to output to buf
             # This allows us to display a virtual terminal
             # that intercepts print(info) statements from imported classes
@@ -733,19 +781,21 @@ class BB(tk.Frame):
         """
         import os
         self.downloadOptions = BBOption(self.frame, self.backgroundColour)
-        self.downloadOptions.add_label(tag="downloadOptions", text="Download Options:", font=("Arial Bold", 16), padx=0, column=4, row=0)
+        self.downloadOptions.add_label(tag="downloadOptions", text="Download Options:", font=("Arial Bold", 16), padx=0, column=4, row=0, columnspan=2)
 
-        self.downloadOptions.add_label(tag="savePath", text="Save Path:", padx=0, column=4, row=1, columnspan=1)
-        self.downloadOptions.add_entry(tag="savePath", sanatiseEntry=False, width=56, padx=10, column=4, row=1+1, columnspan=1)
+        self.downloadOptions.add_label(tag="savePath", text="Save Path and File Name:", padx=0, column=4, row=1, columnspan=2)
+        self.downloadOptions.add_entry(tag="savePath", sanatiseEntry=False, width=56, padx=10, column=4, row=1+1, columnspan=2)
         self.downloadOptions.entry["savePath"].set(self.programDirectory)
 
         self.downloadOptions.add_checkbox(tag="downloadPDF", text="Download as PDF", checkState=True, column=4, row=3)
         self.downloadOptions.add_checkbox(tag="downloadCSV", text="Download as CSV", checkState=True, column=4, row=4)
+        self.downloadOptions.add_checkbox(tag="lengthAutomaticallyOnEndOfFilename", text='Length on end of filename (e.g. "Name_allLengths.pdf")', checkState=True, column=5, row=3)
+
         self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download, column=4, row=5,
                                         columnspan=2)
 
         self.info_text = Text(self.frame, startingText=self.programTitle, column=4, row=6, width=82, height=38,
-                              columnspan=1, rowspan=23, padx=10, pady=10, sticky="NESW")
+                              columnspan=2, rowspan=23, padx=10, pady=10, sticky="NESW")
 
     def read_std_out(self):
         """Put stdout messages into the info_box. Called once, auto-refreshes"""
@@ -764,8 +814,12 @@ class BB(tk.Frame):
         # A basic bit of sanatising:
         info = info.rstrip()
 
-        self.info_text.info_text.config(state=NORMAL)
         info = str(info) + "\n"
+
+        if self.log.logging == True:
+            self.log.write(info)
+
+        self.info_text.info_text.config(state=NORMAL)
         self.info_text.info_text.insert(END, info)
         self.info_text.info_text.see(END)
         self.info_text.info_text.config(state=DISABLED)
@@ -838,7 +892,9 @@ class Downloader():
                                "Reverse Results":self.advancedOptions.checkbox["reverseResults"].get(),
 
                                "PDF":self.downloadOptions.checkbox["downloadPDF"].get(),
-                               "CSV":self.downloadOptions.checkbox["downloadCSV"].get()}
+                               "CSV":self.downloadOptions.checkbox["downloadCSV"].get(),
+                               "Length Automatically on End of Filename":self.downloadOptions.checkbox["lengthAutomaticallyOnEndOfFilename"].get()}
+
             self.baseUrl = "https://bb.ringingworld.co.uk/export.php?"
 
             # Options
@@ -917,44 +973,48 @@ class Downloader():
             self.urlBefore = "{}".format(url)
             for length in self.options.checkbox:
                 if self.options.checkbox[length].get() == True:
+                    if self.downloadOptions.checkbox["lengthAutomaticallyOnEndOfFilename"].get():
+                            lengthName = "_"+length
+                    else:
+                        lengthName = ""
                     url += "&length="
                     if length == "allLengths":
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "shortTouches":
                         url += "short"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "quarters":
                         url += "quarter"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "quartersOrLonger":
                         url += "q-or-p"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "dateTouches":
                         url += "date"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "halfPeals":
                         url += "half"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "peals":
                         url += "peal"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "longLengths":
                         url += "long"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
                                           downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
                                           downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
 
