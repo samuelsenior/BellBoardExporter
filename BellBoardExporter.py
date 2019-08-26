@@ -11,7 +11,6 @@ class Text():
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         from tkinter import ttk, DISABLED, NORMAL, END
-        #...
         self.startingText = startingText
         self.width=width
         self.height=height
@@ -27,7 +26,6 @@ class Text():
         self.info_text.insert(END, self.startingText+"\n")
         self.info_text.config(state=DISABLED)
         self.info_text.grid(column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan, padx=self.padx, pady=self.pady)
-        #...
 
 
 class Label():
@@ -327,7 +325,6 @@ class BBOption():
         self.button = {}
         self.combobox = {}
 
-
     def add_label(self, tag, text=None, font=("Arial Bold", 14),
                   width=None, height=None,
                   foreground="black", background=None, padx=0, pady=0,
@@ -336,7 +333,6 @@ class BBOption():
         Function to add a tkinter Label to the frame. Does this by creating an instance of the custom Label
         wrapper class.
         """
-
         if background is None:
             background = self.backgroundColour
 
@@ -354,7 +350,6 @@ class BBOption():
         Function to add a tkinter LabelFrame to the frame. Does this by creating an instance of the custom LabelFrame
         wrapper class.
         """
-
         if background is None:
             background = self.backgroundColour
 
@@ -371,7 +366,6 @@ class BBOption():
         Function to add a tkinter Entry to the frame. Does this by creating an instance of the custom Entry
         wrapper class.
         """
-
         self.entry[tag] = Entry(self.frame, sanatiseEntry=sanatiseEntry, width=width, state=state, foreground=foreground, background=background,
                                 padx=padx, pady=pady,
                                 column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
@@ -383,7 +377,6 @@ class BBOption():
         Function to add a tkinter Checkbutton to the frame. Does this by creating an instance of the custom Checkbutton
         wrapper class.
         """
-
         if background is None:
             background = self.backgroundColour
 
@@ -399,7 +392,6 @@ class BBOption():
         Function to add a tkinter Button to the frame. Does this by creating an instance of the custom Button
         wrapper class.
         """
-
         if background is None:
             background = self.backgroundColour
 
@@ -414,7 +406,6 @@ class BBOption():
         Function to add a tkinter Combobox to the frame. Does this by creating an instance of the custom Combobox
         wrapper class.
         """
-
         if background is None:
             background = self.backgroundColour
 
@@ -431,9 +422,6 @@ class Menu():
     def __init__(self, root):
         self.menu = tk.Menu(root)
         self.newMenuItem = tk.Menu(self.menu)
-        #self.newMenuItem.add_command(label="New")
-        #self.newMenuItem.add_command(label="Open")
-        #self.newMenuItem.add_separator()
         self.newMenuItem.add_command(label="Exit", command=root.destroy)
         self.menu.add_cascade(label="File", menu=self.newMenuItem)
         root.configure(menu=self.menu)
@@ -482,14 +470,10 @@ class BB(tk.Frame):
         from threading import Thread
 
         self.programTitle = "Bell Board Exporter - v1.0.0"
-        self.backgroundColour = "#474641"##3E4149"
+        self.backgroundColour = "#474641"
 
         tk.Frame.__init__(self, root)
         root.configure(background=self.backgroundColour)
-        #root.attributes('-fullscreen', True)
-        #self.maxGeometry = root.winfo_geometry()
-        #root.attributes('-fullscreen', False)
-        #print(self.maxGeometry)
         root.geometry("")
         root.title(self.programTitle)
 
@@ -500,9 +484,6 @@ class BB(tk.Frame):
 
         self.canvas = tk.Canvas(root, borderwidth=0, highlightthickness=0, background=self.backgroundColour)
         self.frame = tk.Frame(self.canvas, background=self.backgroundColour)
-
-        #self.frame.columnconfigure(0, weight=1)
-        #self.frame.columnconfigure(1, weight=1)
 
         #self.vsb = tk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
         #self.canvas.configure(yscrollcommand=self.vsb.set)
@@ -546,15 +527,12 @@ class BB(tk.Frame):
         self.populate_downloadOptions()
         self.downloader.update_Download(self.downloadOptions)
 
-
-        #self.info_text = Text(self.frame, startingText=self.programTitle, column=4, row=6, width=80, height=40,
-        #                      columnspan=2, rowspan=23, padx=10)
         def printing_thread(self, info_text):
             """
             Function to put the printing of information, errors, etc, onto a seperate thread to the main thread.
             """
             self.info_text = info_text
-            # Create buffer class
+            # Create Buffer class object
             self.buf = Buffer()
             # Set stdout to output to buf
             # This allows us to display a virtual terminal
@@ -701,7 +679,7 @@ class BB(tk.Frame):
         self.advancedOptions.add_checkbox(tag="ringerIsStrapper", text="Ringer is Strapper", column=col_i, row=row_i+6)
         row_i += 6
 
-        #row_i += 1
+        row_i -= 1
         col_i = 0
         self.advancedOptions.add_label(tag="orderBy", text="Order By:", padx=5, column=col_i, row=row_i)
         menuOptions = ["Date Rung", "Date Submitted", "Place", "Length",
@@ -739,14 +717,11 @@ class BB(tk.Frame):
         self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download, column=4, row=5,
                                         columnspan=2)
 
-        self.info_text = Text(self.frame, startingText=self.programTitle, column=4, row=6, width=80, height=34,
+        self.info_text = Text(self.frame, startingText=self.programTitle, column=4, row=6, width=82, height=38,
                               columnspan=1, rowspan=23, padx=10, pady=10, sticky="NESW")
 
     def read_std_out(self):
         """Put stdout messages into the info_box. Called once, auto-refreshes"""
-
-        #import sys
-        #sys.stdout.flush()  # Force write
         read = self.buf.read()
         if read:
             self.add_info(read)
@@ -797,9 +772,6 @@ class Downloader():
         Function to download files. Goes through the download options and downloads files for those options, with a seperate
         file for each ringing length, and for PDF and CSV, depending on given options.
         """
-        # Update the ringerName value
-        # Is this needed, as .get() should do this anyway?
-        #self.options.entry["ringerName"].update()
         if self.options.entry["ringerName"].get() == "" and self.options.entry["conductorName"].get() == "" and self.options.entry["composerName"].get() == "":
             print('Error: Need at least one of Ringer, Conductor, or Composer to be filled in!')
         else:
@@ -828,7 +800,21 @@ class Downloader():
                                "Other Ringer":self.advancedOptions.entry["otherRinger"].get(sanatise=False),
                                "Other Ringer's Bell":self.advancedOptions.entry["otherRingersBell"].get(sanatise=False),
 
+                               #comp details
+                               "Composition Details":self.advancedOptions.entry["compDetails"].get(sanatise=False),
+                               #footnote
+                               "Footnote":self.advancedOptions.entry["footnote"].get(),
+
+                               "With Photo":self.advancedOptions.checkbox["withPhoto"].get(),
+                               "With Composition":self.advancedOptions.checkbox["withComposition"].get(),
+                               "Machine-Readable Composition":self.advancedOptions.checkbox["machineReadableComposition"].get(),
+                               "Exclude Non-Compliant Performances":self.advancedOptions.checkbox["excludedNonCompliantPerformances"].get(),
+                               "Ringer is Conductor":self.advancedOptions.checkbox["ringerIsConductor"].get(),
+                               "Ringer is Strapper":self.advancedOptions.checkbox["ringerIsStrapper"].get(),
+
                                "Order By":self.advancedOptions.combobox["orderByMenu"].get(),
+
+                               "Reverse Results":self.advancedOptions.checkbox["reverseResults"].get(),
 
                                "PDF":self.downloadOptions.checkbox["downloadPDF"].get(),
                                "CSV":self.downloadOptions.checkbox["downloadCSV"].get()}
@@ -862,7 +848,7 @@ class Downloader():
                 if self.advancedOptions.checkbox[advancedOptionsCheckbox].get() == True:
                     if advancedOptionsCheckbox == "withPhoto":
                         url += "&has_media"
-                        print("Info: Currently cannot download the actual performance photos, only the performance!")
+                        print("Info: Currently can only download the performances but not their photos!")#cannot download performance photos, only the performances!")
                     if advancedOptionsCheckbox == "withComposition":
                         url += "&with_composition"
                     if advancedOptionsCheckbox == "machineReadableComposition":
