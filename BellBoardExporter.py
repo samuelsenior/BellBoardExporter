@@ -472,6 +472,8 @@ class BB(tk.Frame):
         self.programTitle = "Bell Board Exporter - v1.0.0"
         self.backgroundColour = "#474641"
 
+        self._findProgramDirectory()
+
         tk.Frame.__init__(self, root)
         root.configure(background=self.backgroundColour)
         root.geometry("")
@@ -545,6 +547,47 @@ class BB(tk.Frame):
             self.read_std_out()
         self.printing_thread = Thread(target=printing_thread, args=(self, self.info_text))
         self.printing_thread.start()
+
+    def _findProgramDirectory(self):
+        import os
+        import sys
+        from platform import system
+
+        if system() == "Windows":
+            system_ = system()
+
+        elif system() == "Linux":
+            self.canvas.bind_all("<MouseWheel>", self._onMousewheel_linux)
+
+        elif system() == "Darwin":
+            self.canvas.bind_all("<MouseWheel>", self._onMousewheel_mac)
+
+        else:
+            print("Warning: Could not determine OS platform, assuming Windows")
+            self.canvas.bind_all("<MouseWheel>", self._on_mousewheel_windows)
+
+
+        # determine if application is a script file or frozen exe
+        if getattr(sys, 'frozen', False):
+            application_path = os.path.dirname(sys.executable)
+        elif __file__:
+            application_path = os.path.join(os.getcwd(), "")
+
+        self.programDirectory = application_path
+
+        if system() == "Darwin":
+            if ".app" in self.programDirectory:
+                while not self.programDirectory.endswith('.app'):
+                    self.programDirectory = os.path.dirname(self.programDirectory)
+                self.programDirectory = os.path.dirname(self.programDirectory)
+
+        # Check to see if trailing slash
+        if self.programDirectory[-1] == "/" or self.programDirectory[-1] == "/":
+            print("Already slash here!")
+        else:
+            print("Oh no, no slash!!")
+            self.programDirectory = os.path.join(self.programDirectory, "")
+        print(self.programDirectory)
 
     def _onResize(self, event):
         """
@@ -710,7 +753,7 @@ class BB(tk.Frame):
 
         self.downloadOptions.add_label(tag="savePath", text="Save Path:", padx=0, column=4, row=1, columnspan=1)
         self.downloadOptions.add_entry(tag="savePath", sanatiseEntry=False, width=56, padx=10, column=4, row=1+1, columnspan=1)
-        self.downloadOptions.entry["savePath"].set(os.path.join(os.getcwd(), ""))
+        self.downloadOptions.entry["savePath"].set(self.programDirectory)
 
         self.downloadOptions.add_checkbox(tag="downloadPDF", text="Download as PDF", checkState=True, column=4, row=3)
         self.downloadOptions.add_checkbox(tag="downloadCSV", text="Download as CSV", checkState=True, column=4, row=4)
