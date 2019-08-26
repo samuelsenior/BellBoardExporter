@@ -86,7 +86,7 @@ class LabelFrame():
 
 
 class Entry():
-    def __init__(self, frame, sanatiseEntry=True, width=None, state="normal", foreground="black", background="white",##3E4149",
+    def __init__(self, frame, textVariable="", sanatiseEntry=True, width=None, state="normal", foreground="black", background="white",##3E4149",
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -103,9 +103,10 @@ class Entry():
         self.rowspan=rowspan
         self.sticky=sticky
 
-        self.entryValue = ""
+        self.entryValue = textVariable
+        self.unsanatisedEntryValue = textVariable
 
-        self.entry = tk.Entry(frame, width=self.width, state=self.state, foreground=self.foreground, background=self.background,)
+        self.entry = tk.Entry(frame, textvariable=self.entryValue, width=self.width, state=self.state, foreground=self.foreground, background=self.background,)
         self.entry.grid(padx=self.padx, pady=self.pady,
                         column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
                         sticky=self.sticky)
@@ -118,11 +119,23 @@ class Entry():
 
     def update(self):
         self.entryValue = self.entry.get()
+        self.unsanatisedEntryValue = self.entryValue
         self.sanatise()
 
-    def get(self):
+    def get(self, sanatise=True):
         self.update()
-        return self.entryValue
+        if sanatise == True:
+            return self.entryValue
+        elif sanatise == False:
+            return self.unsanatisedEntryValue
+        else:
+            print('Error: Entry.get() option "sanatise" needs to be either a bool value or type None')
+
+    def set(self, textVariable):
+        self.entryValue = textVariable
+        self.unsanatisedEntryValue = self.entryValue
+        self.entry.insert(0, textVariable)
+        #self.update()
 
     def print(self):
         #self.update()
@@ -135,7 +148,6 @@ class Checkbutton():
 
         self.tag = tag
         self.text=text
-        self.checkState=checkState
         self.foreground=foreground
         self.background=background
         self.padx=padx
@@ -146,7 +158,7 @@ class Checkbutton():
         self.rowspan=rowspan
         self.sticky=sticky
 
-        self.chk_state_var = tk.BooleanVar(value=self.checkState)
+        self.chk_state_var = tk.BooleanVar(value=checkState)
         self.checkbox = tk.Checkbutton(frame, text=self.text, variable=self.chk_state_var,
                                        onvalue=True, offvalue=False,
                                        foreground=self.foreground, background=self.background,
@@ -331,40 +343,63 @@ class Menu():
     def __init__(self, root):
         self.menu = tk.Menu(root)
         self.newMenuItem = tk.Menu(self.menu)
-        self.newMenuItem.add_command(label="New")
-        self.newMenuItem.add_command(label="Open")
-        self.newMenuItem.add_separator()
+        #self.newMenuItem.add_command(label="New")
+        #self.newMenuItem.add_command(label="Open")
+        #self.newMenuItem.add_separator()
         self.newMenuItem.add_command(label="Exit", command=root.destroy)
         self.menu.add_cascade(label="File", menu=self.newMenuItem)
         root.configure(menu=self.menu)
+
+
+class Buffer():
+            def __init__(self):
+                self.buf = ""
+            def read(self):
+                return self.buf
+
+            def flush(self):
+                pass#self.buf = ""
+
+            def clear (self):
+                self.buf = ""
+
+            def write(self, value):
+                if value != "\n":
+                    self.buf += "> " + value + "\n"
 
 
 class BB(tk.Frame):
     def __init__(self, root):
 
         from platform import system
+        import sys
+        from threading import Thread
 
         self.programTitle = "Bell Board Exporter - v1.0.0"
         self.backgroundColour = "#474641"##3E4149"
 
         tk.Frame.__init__(self, root)
         root.configure(background=self.backgroundColour)
-        root.geometry('1300x800')
+        #root.attributes('-fullscreen', True)
+        #self.maxGeometry = root.winfo_geometry()
+        #root.attributes('-fullscreen', False)
+        #print(self.maxGeometry)
+        root.geometry("")
         root.title(self.programTitle)
+
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(0, weight=1)
 
         menu = Menu(root)
 
-        self.canvas = tk.Canvas(root, borderwidth=0, background=self.backgroundColour)
+        self.canvas = tk.Canvas(root, borderwidth=0, highlightthickness=0, background=self.backgroundColour)
         self.frame = tk.Frame(self.canvas, background=self.backgroundColour)
-
 
         self.frame.columnconfigure(0, weight=1)
         self.frame.columnconfigure(1, weight=1)
 
-
-        self.vsb = tk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
-        self.canvas.configure(yscrollcommand=self.vsb.set)
-
+        #self.vsb = tk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
+        #self.canvas.configure(yscrollcommand=self.vsb.set)
         #self.hsb = tk.Scrollbar(root, orient="horizontal", command=self.canvas.xview)
         #self.canvas.configure(xscrollcommand=self.hsb.set)
 
@@ -381,41 +416,55 @@ class BB(tk.Frame):
             print("Warning: Could not determine OS platform, assuming Windows")
             self.canvas.bind_all("<MouseWheel>", self._on_mousewheel_windows)
 
-        self.vsb.pack(side="right", fill="y")
+        #self.vsb.pack(side="right", fill="y")
         #self.hsb.pack(side="bottom", fill="x")
         self.canvas.pack(side="left", fill="both", expand=True)
-        self.canvas.create_window((4,4), window=self.frame, anchor="nw", 
+        self.canvas.create_window((0, 0), window=self.frame, anchor="nw", 
                                   tags="self.frame")
+
+        self.canvas.bind("<Configure>", self._onResize)
+        self.frame.bind("<Configure>", self._onResize)
 
         self.frame.bind("<Configure>", self._onFrameConfigure)
         self.frame.grid_propagate=1
+        for i in range(5):
+            self.frame.columnconfigure(i, weight=1)
+        for i in range(28):
+            self.frame.rowconfigure(i, weight=1)
+        self.frame.pack(fill="both", expand=True)
+        #self.frame.grid(row=0, column=0, sticky="EW")
+        #self.frame.pack()
 
         self.populate()
-        #self.populate_downloadOptions()
-
-
         self.downloader = Downloader(self.frame, self.options, self.advancedOptions)#, self.download)
-
         self.populate_downloadOptions()
         self.downloader.update_Download(self.downloadOptions)
 
 
-        self.info_text = Text(self.frame, startingText=self.programTitle+"\nOutput Window:", column=4, row=5, columnspan=10, rowspan=16, padx=10)
-        import sys
-        # If .buf exists, clear it.
-        with open('.buf', 'w'):
-            pass
-        # Set stdout to output to .buf
-        # This allows us to display a virtual terminal
-        # that intercepts print(info) statements from imported classes
-        sys.stdout = open(".buf", 'a')
+        self.info_text = Text(self.frame, startingText=self.programTitle, column=4, row=6, columnspan=2, rowspan=16, padx=10)
+        def printing_thread(self, info_text):
+            self.info_text = info_text
+            # Create buffer class
+            self.buf = Buffer()
+            # Set stdout to output to buf
+            # This allows us to display a virtual terminal
+            # that intercepts print(info) statements from imported classes
+            sys.stdout = self.buf
+            # Check and refresh buf -- see function for details
+            # Could add extra bit in buf class that on write also writes to a log file
+            self.print_rate = 150
+            self.print_rate_original = self.print_rate
+            self.read_std_out()
+        self.printing_thread = Thread(target=printing_thread, args=(self, self.info_text))
+        self.printing_thread.start()
 
-        # Check and refresh buf -- see function for details
-        self.read_std_out()
-        #sys.stdout = WriteToWindow(self.downloadOptions.label["terminalOutput"].update)
-
-        self.downloader.download()
-
+    def _onResize(self, event):
+            self.width = event.width
+            self.height = event.height
+            self.canvas.configure(width=self.width, height=self.height)
+            self.frame.configure(width=self.width, height=self.height)
+            #print("Canvas:", self.canvas.winfo_reqwidth(),self.canvas.winfo_reqheight())
+            #print("Frame:", self.frame.winfo_reqwidth(),self.frame.winfo_reqheight())
 
     def _onFrameConfigure(self, event):
         '''Reset the scroll region to encompass the inner frame'''
@@ -435,7 +484,6 @@ class BB(tk.Frame):
         '''Enable frame scrolling for Mac'''
         #self.canvas.xview_scroll(int(-1*(event.delta)), "units")
         self.canvas.yview_scroll(int(-1*(event.delta)), "units")
-
 
     def populate(self):
         row_i = 0
@@ -561,35 +609,32 @@ class BB(tk.Frame):
         self.advancedOptions.add_checkbox(tag="reverseResults", text="Reverse Order of Results", checkState=True, column=col_i, row=row_i+1)
 
     def populate_downloadOptions(self):
+        import os
         self.downloadOptions = BBOption(self.frame, self.backgroundColour)
         self.downloadOptions.add_label(tag="downloadOptions", text="Download Options:", font=("Arial Bold", 16), padx=5, column=4, row=0)
 
         self.downloadOptions.add_label(tag="savePath", text="Save Path:", padx=5, column=4, row=1, columnspan=2)
-        self.downloadOptions.add_entry(tag="savePath", sanatiseEntry=False, width=62, padx=10, column=4, row=1+1, columnspan=5)
+        self.downloadOptions.add_entry(tag="savePath", sanatiseEntry=False, width=62, padx=10, column=4, row=1+1, columnspan=2)
+        self.downloadOptions.entry["savePath"].set(os.path.join(os.getcwd(), ""))
 
         self.downloadOptions.add_checkbox(tag="downloadPDF", text="Download as PDF", checkState=True, column=4, row=3)
-        self.downloadOptions.add_checkbox(tag="downloadCSV", text="Download as CSV", checkState=True, column=5, row=3)
-        self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download, column=4, row=4,
+        self.downloadOptions.add_checkbox(tag="downloadCSV", text="Download as CSV", checkState=True, column=4, row=4)
+        self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download, column=4, row=5,
                                         columnspan=2)
 
         #self.downloadOptions.add_label(tag="terminalOutputTitle", text="Output:", font=("Arial Bold", 14), padx=5, column=4, row=5)
         #self.downloadOptions.add_label(tag="terminalOutput", text="Testing", background="white", font=("Arial", 14), column=4, row=6)#, width=37, height=10, padx=10, column=4, row=6, columnspan=5, rowspan=8)
 
-
-
     def read_std_out(self):
         """Put stdout messages into the info_box. Called once, auto-refreshes"""
-        import sys
-        sys.stdout.flush()  # Force write
-        with open('.buf', 'r') as buf:
-            read = buf.read()
-            if read:  # Do not write if empty
-                self.add_info(read)
-        with open('.buf', 'w'):
-            pass  # Clear file
 
-        sys.stdout = open(".buf", 'a')
-        self.after(500, self.read_std_out)  # Call this again soon
+        #import sys
+        #sys.stdout.flush()  # Force write
+        read = self.buf.read()
+        if read:
+            self.add_info(read)
+        self.buf.clear()#flush()
+        self.after(self.print_rate, self.read_std_out)  # Call this again soon
 
     def add_info(self, info):
         """Add informational message to info box. Use instead of print().
@@ -598,13 +643,16 @@ class BB(tk.Frame):
         from tkinter import DISABLED, NORMAL, END
 
         # A basic bit of sanatising:
-        #info = info.replace('\n', '').replace('\r', '')
+        info = info.rstrip()
 
         self.info_text.info_text.config(state=NORMAL)
-        info = "> " + str(info) + "\n"
+        info = str(info) + "\n"
         self.info_text.info_text.insert(END, info)
         self.info_text.info_text.see(END)
         self.info_text.info_text.config(state=DISABLED)
+
+    def reset_print_rate(self):
+        self.print_rate = self.print_rate_original
 
 
 class Downloader():
@@ -615,27 +663,35 @@ class Downloader():
         self.advancedOptions = advancedOptions
         self.downloadOptions = downloadOptions
 
-
     def update_Download(self, downloadOptions):
         self.downloadOptions = downloadOptions
 
-
-    def download(self):
+    def download(self):        
         if self.options.entry["ringerName"].get() == "" and self.options.entry["conductorName"].get() == "" and self.options.entry["composerName"].get() == "":
             print('Error: Need at least one of Ringer, Conductor, or Composer to be filled in!')
         else:
 
-            self.urlOptions = {"Association":self.options.entry["association"].get(),
-                               "From":self.options.entry["dateRungFrom"].get(),
-                               "To":self.options.entry["dateRungTo"].get(),
-                               "Place":self.options.entry["place"].get(),
-                               "County":self.options.entry["county"].get(),
-                               "Dedication":self.options.entry["dedication"].get(),
-                               "Method":self.options.entry["ringingMethod"].get(),
+            self.urlOptions = {"Association":self.options.entry["association"].get(sanatise=False),
+                               "From":self.options.entry["dateRungFrom"].get(sanatise=False),
+                               "To":self.options.entry["dateRungTo"].get(sanatise=False),
+                               "Place":self.options.entry["place"].get(sanatise=False),
+                               "County":self.options.entry["county"].get(sanatise=False),
+                               "Dedication":self.options.entry["dedication"].get(sanatise=False),
+                               "All Lengths":self.options.checkbox["allRingingLengths"].get(),
+                               "Short Touches":self.options.checkbox["shortTouchesRingingLengths"].get(),
+                               "Quarter Peals":self.options.checkbox["quarterRingingLengths"].get(),
+                               "Qtrs or Longer":self.options.checkbox["quartersOrLongerRingingLengths"].get(),
+                               "Date Touches":self.options.checkbox["dateTouchesRingingLengths"].get(),
+                               "Half Peals":self.options.checkbox["halfPealRingingLengths"].get(),
+                               "Peals":self.options.checkbox["pealRingingLengths"].get(),
+                               "Long Lengths":self.options.checkbox["longLengthsRingingLengths"].get(),
+                               "Method":self.options.entry["ringingMethod"].get(sanatise=False),
                                "Bell Type":self.options.combobox["bellType"].get(),
-                               "Ringer Name":self.options.entry["ringerName"].get(),
-                               "Conductor Name":self.options.entry["conductorName"].get(),
-                               "Composer Name":self.options.entry["composerName"].get()}
+                               "Ringer Name":self.options.entry["ringerName"].get(sanatise=False),
+                               "Conductor Name":self.options.entry["conductorName"].get(sanatise=False),
+                               "Composer Name":self.options.entry["composerName"].get(sanatise=False),
+                               "PDF":self.downloadOptions.checkbox["downloadPDF"].get(),
+                               "CSV":self.downloadOptions.checkbox["downloadCSV"].get()}
             self.baseUrl = "https://bb.ringingworld.co.uk/export.php?"
 
             url = self.baseUrl + "&association=" + self.options.entry["association"].get()
@@ -686,87 +742,97 @@ class Downloader():
 
             # Reverse results
             #Tested
-            if self.advancedOptions.checkbox["reverseResults"].checkState is True:
+            if self.advancedOptions.checkbox["reverseResults"].get() is True:
                 url += "&order=+reverse"
 
+            downloading_output_print = ""
+            downloading_output_print += "Using Options:"
+            for key in self.urlOptions:
+                if self.urlOptions[key] == "" or self.urlOptions[key] == False:
+                    pass
+                else:
+                    downloading_output_print += "\n     {}: {}".format(key, self.urlOptions[key])
+            print(downloading_output_print)
+
+            print("Files to Download:")
             self.urlBefore = "{}".format(url)
             for length in self.options.checkbox:
                 if self.options.checkbox[length].get() == True:
                     url += "&length="
                     if length == "allRingingLengths":
-                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
-                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
-                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
+                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "shortTouchesRingingLengths":
                         url += "short"
-                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
-                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
-                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
+                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "quarterRingingLengths":
                         url += "quarter"
-                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
-                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
-                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
+                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "quartersOrLongerRingingLengths":
                         url += "q-or-p"
-                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
-                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
-                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
+                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "dateTouchesRingingLengths":
                         url += "date"
-                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
-                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
-                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
+                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "halfPealRingingLengths":
                         url += "half"
-                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
-                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
-                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
+                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "pealRingingLengths":
                         url += "peal"
-                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
-                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
-                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
+                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "longLengthsRingingLengths":
                         url += "long"
-                        if self.downloadOptions.checkbox["downloadPDF"].checkState is True:
-                            self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
-                                              downloadPDF=self.downloadOptions.checkbox["downloadPDF"].checkState,
-                                              downloadCSV=self.downloadOptions.checkbox["downloadCSV"].checkState)
+                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+"_"+length,
+                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
+                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
 
                 url = "{}".format(self.urlBefore)
 
     def download_url(self, url, saveName, downloadPDF=True, downloadCSV=True):
         import os
-        import requests
+        from threading import Thread
 
-        print("Using Options:")
-        for key in self.urlOptions:
-            if self.urlOptions[key] == "":
-                pass
-            else:
-                print("   {}: {}".format(key, self.urlOptions[key]))
         if downloadPDF == True:
-            print("Saving to file: {}".format(saveName+'.pdf'))
-            myfile = requests.get(url+"&fmt="+"pdf")
-            open(saveName+'.pdf', 'wb').write(myfile.content)
-            print("Done!")
+            print("   {}".format(saveName+'.pdf'))
+            downloadThread_pdf = Thread(target=self._dowloadFile, args=(url+"&fmt="+"pdf", saveName+".pdf"))
+            downloadThread_pdf.start()
+
         if downloadCSV == True:
-            print("Saving to file: {}".format(saveName+'.csv'))
-            myfile = requests.get(url+"&fmt="+"csv")
-            open(saveName+'.csv', 'wb').write(myfile.content)
-            print("Done!")
+            print("   {}".format(saveName+'.csv'))
+            downloadThread_csv = Thread(target=self._dowloadFile, args=(url+"&fmt="+"csv", saveName+".csv"))
+            downloadThread_csv.start()
+
+    def _dowloadFile(self, url, saveName):
+        import requests
+        downloadAttmptCount = 0
+        maxDownloadAttmpts = 5
+        while downloadAttmptCount < maxDownloadAttmpts:
+            try:
+                myfile = requests.get(url)
+                open(saveName, 'wb').write(myfile.content)
+                print("{} downloaded!".format(saveName))
+                downloadAttmptCount = maxDownloadAttmpts + 1
+            except requests.exceptions.RequestException as err:
+                print("Error in downloading file:\n   "+err+"\n   Trying download again...")
+                downloadAttmptCount += 1
+        if downloadAttmptCount == maxDownloadAttmpts:
+            print("Error: Could not download file in allowed number of attempts, please try again")
 
 
 if __name__ == "__main__":
     root=tk.Tk()
     BB(root).pack(side="top", fill="both", expand=True)
-
     root.mainloop()
