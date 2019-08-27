@@ -898,7 +898,7 @@ class Downloader():
             self.baseUrl = "https://bb.ringingworld.co.uk/export.php?"
 
             # Options
-            url = self.baseUrl + "&association=" + self.options.entry["association"].get()
+            url = self.baseUrl + "association=" + self.options.entry["association"].get()
             url += "&from=" + self.options.entry["dateRungFrom"].get()
             url += "&to=" + self.options.entry["dateRungTo"].get()
             url += "&place=" + self.options.entry["place"].get()
@@ -1042,20 +1042,58 @@ class Downloader():
         Function to do the actual download. Kept seperate to allow for multithreading.
         """
         import requests
-        downloadAttmptCount = 0
+        from PyPDF2 import PdfFileReader, PdfFileMerger
+        import io
+        
         maxDownloadAttmpts = 5
-        while downloadAttmptCount < maxDownloadAttmpts:
-            try:
-                myfile = requests.get(url)
-                downloadAttmptCount = maxDownloadAttmpts + 1
-            except requests.exceptions.RequestException as err:
-                print("Error in downloading file:\n   "+err+"\n   Trying download again...")
-                downloadAttmptCount += 1
-        if downloadAttmptCount == maxDownloadAttmpts:
-            print("Error: Could not download file in allowed number of attempts, please try again")
-        elif downloadAttmptCount == maxDownloadAttmpts + 1:
-            open(saveName, 'wb').write(myfile.content)
-            print("{} downloaded!".format(saveName))
+
+        page = 1
+        paging = True
+        while paging:
+            downloadAttmptCount = 0
+            while downloadAttmptCount < maxDownloadAttmpts:
+                try:
+                    myfile = requests.get(url+"&page={}".format(str(page)))
+                    downloadAttmptCount = maxDownloadAttmpts + 1
+                except requests.exceptions.RequestException as err:
+                    print("Error in downloading file:\n   "+err+"\n   Trying download again...")
+                    downloadAttmptCount += 1
+            if downloadAttmptCount == maxDownloadAttmpts:
+                print("Error: Could not download file in allowed number of attempts, please try again")
+            elif downloadAttmptCount == maxDownloadAttmpts + 1:
+                if myfile.text == "":
+                    #print("Warning, empty BellBoard search result page on page {}".format(str(page)))#file: {}".format(saveName))
+                    paging = False
+                else:
+                    if saveName[-3:] == "csv":
+                        if page == 1:
+                            print("Downloading CSV of page 1 of BellBoard search results")
+                            with open(saveName, 'wb') as fileOutput:
+                                fileOutput.write(myfile.content)
+                            #print("Download of PDF of page 1 of BellBoard search results complete!")
+
+                        else:
+                            print("Merging CSV of page {} of BellBoard results to previous pages' CSV".format(page))
+                            with open(saveName, 'ab') as fileOutput:
+                                fileOutput.write(myfile.content)
+                            #print("CSV merging of page {} of BellBoard results complete!".format(page))
+                        #page += 1
+                    elif saveName[-3:] == "pdf":
+                        if page == 1:
+                            print("Downloading PDF of page 1 of BellBoard search results")
+                            with open(saveName, 'wb') as fileOutput:
+                                fileOutput.write(myfile.content)
+                            #print("Download of PDF of page 1 of BellBoard search results complete!")
+                        else:
+                            if saveName[-3:] == "pdf":
+                                print("Merging PDF of page {} of BellBoard results to previous pages' PDF".format(page))
+                                merger = PdfFileMerger()
+                                merger.append(PdfFileReader(open(saveName, 'rb')))
+                                merger.append(PdfFileReader(io.BytesIO(myfile.content)))
+                                merger.write(saveName)
+                                #print("PDF merging of page {} of BellBoard results complete!".format(page))
+                    page += 1
+        print("{} downloaded and merged!".format(saveName))
 
 
 if __name__ == "__main__":
