@@ -353,23 +353,25 @@ class BrowseButton():
         import os
 
         fileNameTmp = os.path.join(filedialog.askdirectory(initialdir=self.fileName, title=self.title), "")
-        if fileNameTmp != "":
+        if fileNameTmp != "" and not isinstance(fileNameTmp, tuple):
             self.fileName = fileNameTmp
         if self.extraCommand != None:
             self.extraCommand(self.fileName)
-        if fileNameTmp != "":
+        if fileNameTmp != "" and not isinstance(fileNameTmp, tuple):
             print("Directory Selected: {}".format(self.fileName))
 
     def _selectFile(self):
         from tkinter import filedialog
+        import os
+        
         fileNameTmp = filedialog.asksaveasfilename(initialdir=self.fileName, title=self.title)#, filetypes=self.fileTypes)
-        if fileNameTmp != "":
+        if fileNameTmp != "" and not isinstance(fileNameTmp, tuple):
             self.fileName = fileNameTmp
         if "." in self.fileName:
             self.fileName = self.fileName.split(".", 1)[0]
         if self.extraCommand != None:
             self.extraCommand(self.fileName)
-        if fileNameTmp != "":
+        if fileNameTmp != "" and not isinstance(fileNameTmp, tuple):
             print("File Selected: {}".format(self.fileName))
 
     def get(self):
