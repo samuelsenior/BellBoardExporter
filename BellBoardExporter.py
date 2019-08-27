@@ -32,7 +32,7 @@ class Label():
     """
     The Label class, a custom class that wraps around a new instance of a tkinter Label widget.
     """
-    def __init__(self, frame, text=None, font=("Arial Bold", 14),
+    def __init__(self, frame, font, text=None,
                  foreground="black", background="white",
                  width=None, height=None,
                  padx=0, pady=0,
@@ -67,7 +67,7 @@ class LabelFrame():
     """
     The LabelFrame class, a custom class that wraps around a new instance of a tkinter LabelFrame widget.
     """
-    def __init__(self, frame, text=None, font=("Arial Bold", 14),
+    def __init__(self, frame, font, text=None,
                  foreground="black", background="white",
                  width=None, height=None,
                  padx=0, pady=0,
@@ -182,7 +182,7 @@ class Checkbutton():
     The Checkbutton class, a custom class that wraps around a new instance of a tkinter Checkbutton widget.
     """
     def __init__(self, frame, tag=None, text=None, checkState=False, foreground="black", background="white",
-                 padx=10, pady=0,
+                 padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
         self.tag = tag
@@ -232,7 +232,7 @@ class Button():
     The Button class, a custom class that wraps around a new instance of a tkinter Button widget.
     """
     def __init__(self, frame, options, tag=None, text=None, foreground="black", background="white", command=None,
-                 padx=10, pady=0,
+                 padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
         self.tag = tag
@@ -269,7 +269,7 @@ class Combobox():
     The Combobox class, a custom class that wraps around a new instance of a tkinter Combobox widget.
     """
     def __init__(self, frame, tag=None, menuOptions=None, width=None, foreground="black", background="white",
-                 padx=10, pady=0,
+                 padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
         self.tag=tag,
@@ -315,7 +315,7 @@ class BrowseButton():
     def __init__(self, frame, options, tag=None, browseType="browsePath", text="", startingFileName="", title="",
                  command=None,
                  width=None, foreground="black", background="white",
-                 padx=10, pady=0,
+                 padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         self.options = options
         self.tag = tag
@@ -383,26 +383,35 @@ class BBOption():
     The BBOption class (BellBoardOption). A class the holds all the tkinter widgets used within the given frame,
     for easy access to each one, and their values etc.
     """
-    def __init__(self, frame, background):
+    def __init__(self, frame, background, fontDefault, pad):
         self.frame = frame
         self.backgroundColour = background
         del background
+        self.fontDefault = fontDefault
+        self.pad = pad
         self.label = {}
         self.entry = {}
         self.checkbox = {}
         self.button = {}
         self.combobox = {}
 
-    def add_label(self, tag, text=None, font=("Arial Bold", 14),
+    def add_label(self, tag, text=None, font=None,
                   width=None, height=None,
-                  foreground="black", background=None, padx=0, pady=0,
+                  foreground="black", background=None, padx=None, pady=None,
                   column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         """
         Function to add a tkinter Label to the frame. Does this by creating an instance of the custom Label
         wrapper class.
         """
+        if font is None:
+            font = self.fontDefault
         if background is None:
             background = self.backgroundColour
+
+        if padx is None:
+            padx = self.pad['x']['none']
+        if pady is None:
+            pady = self.pad['y']['none']
 
         self.label[tag] = Label(self.frame, text=text, font=font,
                                 width=width, height=height,
@@ -410,16 +419,23 @@ class BBOption():
                                 padx=padx, pady=pady,
                                 column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
-    def add_labelFrame(self, tag, text=None, font=("Arial Bold", 14),
+    def add_labelFrame(self, tag, text=None, font=None,
                   width=None, height=None,
-                  foreground="black", background=None, padx=0, pady=0,
+                  foreground="black", background=None, padx=None, pady=None,
                   column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         """
         Function to add a tkinter LabelFrame to the frame. Does this by creating an instance of the custom LabelFrame
         wrapper class.
         """
+        if font is None:
+            font = self.fontDefault
         if background is None:
             background = self.backgroundColour
+
+        if padx is None:
+            padx = self.pad['x']['none']
+        if pady is None:
+            pady = self.pad['y']['none']
 
         self.label[tag] = LabelFrame(self.frame, text=text, font=font,
                                      width=width, height=height,
@@ -428,18 +444,23 @@ class BBOption():
                                     column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
     def add_entry(self, tag, sanatiseEntry=True, width=None, state="normal",
-                  foreground="black", background="white", padx=0, pady=0,
+                  foreground="black", background="white", padx=None, pady=None,
                   column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         """
         Function to add a tkinter Entry to the frame. Does this by creating an instance of the custom Entry
         wrapper class.
         """
+        if padx is None:
+            padx = self.pad['x']['none']
+        if pady is None:
+            pady = self.pad['y']['none']
+            
         self.entry[tag] = Entry(self.frame, sanatiseEntry=sanatiseEntry, width=width, state=state, foreground=foreground, background=background,
                                 padx=padx, pady=pady,
                                 column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
     def add_checkbox(self, tag, text=None, checkState=False,
-                     foreground="black", background=None, padx=10, pady=0,
+                     foreground="black", background=None, padx=None, pady=None,
                      column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         """
         Function to add a tkinter Checkbutton to the frame. Does this by creating an instance of the custom Checkbutton
@@ -448,13 +469,18 @@ class BBOption():
         if background is None:
             background = self.backgroundColour
 
+        if padx is None:
+            padx = self.pad['x']['none']
+        if pady is None:
+            pady = self.pad['y']['none']
+
         self.checkbox[tag] = Checkbutton(self.frame, tag=tag, text=text, checkState=checkState,
                                          foreground=foreground, background=background,
                                          padx=padx, pady=pady,
                                          column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
     def add_button(self, tag, options, text=None, command=None,
-                   foreground="black", background=None, padx=10, pady=0,
+                   foreground="black", background=None, padx=None, pady=None,
                    column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         """
         Function to add a tkinter Button to the frame. Does this by creating an instance of the custom Button
@@ -463,12 +489,17 @@ class BBOption():
         if background is None:
             background = self.backgroundColour
 
+        if padx is None:
+            padx = self.pad['x']['none']
+        if pady is None:
+            pady = self.pad['y']['none']
+
         self.button[tag] = Button(self.frame, tag=tag, options=options, text=text, command=command,
                                   foreground=foreground, background=background, padx=padx, pady=pady,
                                   column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
     def add_combobox(self, tag, menuOptions=None, width=None,
-                     foreground="black", background=None, padx=10, pady=0,
+                     foreground="black", background=None, padx=None, pady=None,
                      column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         """
         Function to add a tkinter Combobox to the frame. Does this by creating an instance of the custom Combobox
@@ -476,6 +507,11 @@ class BBOption():
         """
         if background is None:
             background = self.backgroundColour
+
+        if padx is None:
+            padx = self.pad['x']['none']
+        if pady is None:
+            pady = self.pad['y']['none']
 
         self.combobox[tag] = Combobox(self.frame, tag=tag, menuOptions=menuOptions, width=width,
                                       foreground=foreground, background=background, padx=padx, pady=pady,
@@ -583,13 +619,62 @@ class BB(tk.Frame):
         from threading import Thread
 
         self.programTitle = "Bell Board Exporter - v1.0.0"
+
+        if system() == "Windows":
+            self.font_large = ("Arial Bold", 18)
+            self.font_medium = ("Arial Bold", 14)
+            self.font_normal = ("Arial Bold", 10)
+            self.font_small = ("Arial", 8)
+            self.outputWindow_width = 82
+            self.outputWindow_height = 30
+            self.pad = { 'x' : {'none':0, 'small':5, 'medium':10, 'large':15},
+                         'y' : {'none':0, 'small':5, 'medium':10, 'large':15} }
+            self.fullScreen = False
+            self.windowSizeState = self._windowSizeState_windows
+        elif system() == "Linux":
+            self.font_large = ("Arial Bold", 24)
+            self.font_medium = ("Arial Bold", 16)
+            self.font_normal = ("Arial Bold", 14)
+            self.font_small = ("Arial", 12)
+            self.outputWindow_width = 82
+            self.outputWindow_height = 38
+            self.pad = { 'x' : {'none':0, 'small':5, 'medium':10, 'large':15},
+                         'y' : {'none':0, 'small':5, 'medium':10, 'large':15} }
+            self.fullScreen = False
+            self.windowSizeState = self._windowSizeState_linux
+        elif system() == "Darwin":
+            self.font_large = ("Arial Bold", 24)
+            self.font_medium = ("Arial Bold", 16)
+            self.font_normal = ("Arial Bold", 14)
+            self.font_small = ("Arial", 12)
+            self.outputWindow_width = 82
+            self.outputWindow_height = 38
+            self.pad = { 'x' : {'none':0, 'small':5, 'medium':10, 'large':15},
+                         'y' : {'none':0, 'small':5, 'medium':10, 'large':15} }
+            self.fullScreen = False
+            self.windowSizeState = self._windowSizeState_mac
+        else:
+            self.font_large = ("Arial Bold", 24)
+            self.font_medium = ("Arial Bold", 16)
+            self.font_normal = ("Arial Bold", 14)
+            self.font_small = ("Arial", 12)
+            self.outputWindow_width = 82
+            self.outputWindow_height = 38
+            self.pad = { 'x' : {'none':0, 'small':5, 'medium':10, 'large':15},
+                         'y' : {'none':0, 'small':5, 'medium':10, 'large':15} }
+            self.fullScreen = False
+            self.windowSizeState = self._windowSizeState_other
+
         self.backgroundColour = "#474641"
 
         self._findProgramDirectory()
 
         tk.Frame.__init__(self, root)
         root.configure(background=self.backgroundColour)
-        root.geometry("")
+        #root.geometry("")
+        self.screenWidth, self.screenHeight = root.winfo_screenwidth(), root.winfo_screenheight()
+        root.geometry("%dx%d+0+0" % (self.screenWidth, self.screenHeight))
+        self.windowSizeState()
         root.title(self.programTitle)
 
         root.columnconfigure(0, weight=1)
@@ -691,6 +776,27 @@ class BB(tk.Frame):
         else:
             self.programDirectory = os.path.join(self.programDirectory, "")
 
+    def _windowSizeState_windows(self):
+        if self.fullScreen == True:
+            root.attributes('-fullscreen', self.fullScreen)
+        else:
+            root.state("zoomed")
+    def _windowSizeState_mac(self):
+        if self.fullScreen == True:
+            root.attributes('-fullscreen', self.fullScreen)
+        else:
+            root.state("zoomed")
+    def _windowSizeState_linux(self):
+        if self.fullScreen == True:
+            root.attributes('-zoomed', True)
+        else:
+            root.state("zoomed")
+    def _windowSizeState_other(self):
+        if self.fullScreen == True:
+            root.attributes('-fullscreen', self.fullScreen)
+        else:
+            root.state("zoomed")
+
     def _onResize(self, event):
         """
         Resize the tkinter canvas and frame on the user changing the size of the window.
@@ -725,57 +831,57 @@ class BB(tk.Frame):
         """
         row_i = 0
         col_i = 0
-        lbl_title = Label(self.frame, text=self.programTitle, font=("Arial Bold", 24), background=self.backgroundColour,
-                          padx=5, column=col_i, row=row_i, columnspan=2)
+        lbl_title = Label(self.frame, text=self.programTitle, font=self.font_large, background=self.backgroundColour,
+                          padx=self.pad['x']['small'], column=col_i, row=row_i, columnspan=2)
         row_i += 1
         col_i = 0
-        self.options = BBOption(self.frame, self.backgroundColour)
-        self.options.add_label(tag="association", text="Association:", padx=5, column=col_i, row=row_i, columnspan=2)
-        self.options.add_entry(tag="association", width=32, padx=10, column=col_i, row=row_i+1, columnspan=2)
-        row_i += 1
-
-        row_i += 1
-        col_i = 0
-        self.options.add_label(tag="dateRungFrom", text="From (dd/mm/yyyy):", padx=5, column=col_i, row=row_i)
-        self.options.add_entry(tag="dateRungFrom", width=10, padx=10, column=col_i, row=row_i+1)
-        self.options.add_label(tag="dateRungTo", text="To (dd/mm/yyyy):", padx=5, column=col_i+1, row=row_i)
-        self.options.add_entry(tag="dateRungTo", width=10, padx=10, column=col_i+1, row=row_i+1)
+        self.options = BBOption(self.frame, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
+        self.options.add_label(tag="association", text="Association:", padx=self.pad['x']['small'], column=col_i, row=row_i, columnspan=2)
+        self.options.add_entry(tag="association", width=32, padx=self.pad['x']['medium'], column=col_i, row=row_i+1, columnspan=2)
         row_i += 1
 
         row_i += 1
         col_i = 0
-        self.options.add_label(tag="place", text="Place:", padx=5, column=col_i, row=row_i)
-        self.options.add_entry(tag="place", width=16, padx=10, column=col_i, row=row_i+1)
-
-        col_i += 1
-        self.options.add_label(tag="county", text="County (or Country):", padx=5, column=col_i, row=row_i)
-        self.options.add_entry(tag="county", width=16, padx=10, column=col_i, row=row_i+1)
-
-        col_i += 1
-        self.options.add_label(tag="dedication", text="Dedication (or Address):", padx=5, column=col_i, row=row_i)
-        self.options.add_entry(tag="dedication", width=16, padx=10, column=col_i, row=row_i+1)
+        self.options.add_label(tag="dateRungFrom", text="From (dd/mm/yyyy):", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.options.add_entry(tag="dateRungFrom", width=10, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
+        self.options.add_label(tag="dateRungTo", text="To (dd/mm/yyyy):", padx=self.pad['x']['small'], column=col_i+1, row=row_i)
+        self.options.add_entry(tag="dateRungTo", width=10, padx=self.pad['x']['medium'], column=col_i+1, row=row_i+1)
         row_i += 1
 
         row_i += 1
         col_i = 0
-        self.options.add_label(tag="ringingLength", text="Lengths:", padx=5, column=col_i, row=row_i)
-        self.options.add_checkbox(tag="allLengths", text="All Lengths", checkState=True, column=col_i, row=row_i+1)
-        self.options.add_checkbox(tag="shortTouches", text="Short Touches", column=col_i, row=row_i+2)
-        self.options.add_checkbox(tag="quarters", text="Quarter Peals", column=col_i, row=row_i+3)
-        self.options.add_checkbox(tag="quartersOrLonger", text="Qtrs or Longer", column=col_i, row=row_i+4)
-        self.options.add_checkbox(tag="dateTouches", text="Date Touches", column=col_i, row=row_i+6)
-        self.options.add_checkbox(tag="halfPeals", text="Half Peals", column=col_i, row=row_i+7)
-        self.options.add_checkbox(tag="peals", text="Peals", column=col_i, row=row_i+8)
-        self.options.add_checkbox(tag="longLengths", text="Long Lengths", column=col_i, row=row_i+9)
+        self.options.add_label(tag="place", text="Place:", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.options.add_entry(tag="place", width=16, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
 
         col_i += 1
-        self.options.add_label(tag="ringingMethod", text="Method (or Performance Title):", padx=5, column=col_i, row=row_i)
-        self.options.add_entry(tag="ringingMethod", width=24, padx=10, column=col_i, row=row_i+1)
+        self.options.add_label(tag="county", text="County (or Country):", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.options.add_entry(tag="county", width=16, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
 
         col_i += 1
-        self.options.add_label(tag="bellType", text="Type (Tower or Hand):", padx=5, column=col_i, row=row_i)
+        self.options.add_label(tag="dedication", text="Dedication (or Address):", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.options.add_entry(tag="dedication", width=16, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
+        row_i += 1
+
+        row_i += 1
+        col_i = 0
+        self.options.add_label(tag="ringingLength", text="Lengths:", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.options.add_checkbox(tag="allLengths", text="All Lengths", padx=self.pad['x']['medium'], checkState=True, column=col_i, row=row_i+1)
+        self.options.add_checkbox(tag="shortTouches", text="Short Touches", padx=self.pad['x']['medium'], column=col_i, row=row_i+2)
+        self.options.add_checkbox(tag="quarters", text="Quarter Peals", padx=self.pad['x']['medium'], column=col_i, row=row_i+3)
+        self.options.add_checkbox(tag="quartersOrLonger", text="Qtrs or Longer", padx=self.pad['x']['medium'], column=col_i, row=row_i+4)
+        self.options.add_checkbox(tag="dateTouches", text="Date Touches", padx=self.pad['x']['medium'], column=col_i, row=row_i+6)
+        self.options.add_checkbox(tag="halfPeals", text="Half Peals", padx=self.pad['x']['medium'], column=col_i, row=row_i+7)
+        self.options.add_checkbox(tag="peals", text="Peals", padx=self.pad['x']['medium'], column=col_i, row=row_i+8)
+        self.options.add_checkbox(tag="longLengths", text="Long Lengths", padx=self.pad['x']['medium'], column=col_i, row=row_i+9)
+
+        col_i += 1
+        self.options.add_label(tag="ringingMethod", text="Method (or Performance Title):", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.options.add_entry(tag="ringingMethod", width=24, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
+
+        col_i += 1
+        self.options.add_label(tag="bellType", text="Type (Tower or Hand):", padx=self.pad['x']['small'], column=col_i, row=row_i)
         bellTypeOptions = ["Tower and Hand", "Handbells Only", "Tower Bells Only"]
-        self.options.add_combobox(tag="bellType", menuOptions=bellTypeOptions, width=15, column=col_i, row=row_i+1)
+        self.options.add_combobox(tag="bellType", menuOptions=bellTypeOptions, width=15, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
         #self.options.add_checkbox(tag="towerAndHand", text="Tower and Hand", column=col_i, row=row_i+1)
         #self.options.add_checkbox(tag="handbellsOnly", text="Handbells Only", column=col_i, row=row_i+2)
         #self.options.add_checkbox(tag="towerBellsOnly", text="Tower Bells Only", column=col_i, row=row_i+3)
@@ -783,54 +889,54 @@ class BB(tk.Frame):
 
         row_i += 1
         col_i = 0
-        self.options.add_label(tag="ringerName", text="Ringer:", padx=5, column=col_i, row=row_i)
-        self.options.add_entry(tag="ringerName", width=16, padx=10, column=col_i, row=row_i+1)
-        self.options.add_label(tag="conductorName", text="Conductor:", padx=5, column=col_i+1, row=row_i)
-        self.options.add_entry(tag="conductorName", width=16, padx=10, column=col_i+1, row=row_i+1)
-        self.options.add_label(tag="composerName", text="Composer:", padx=5, column=col_i+2, row=row_i)
-        self.options.add_entry(tag="composerName", width=16, padx=10, column=col_i+2, row=row_i+1)
+        self.options.add_label(tag="ringerName", text="Ringer:", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.options.add_entry(tag="ringerName", width=16, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
+        self.options.add_label(tag="conductorName", text="Conductor:", padx=self.pad['x']['small'], column=col_i+1, row=row_i)
+        self.options.add_entry(tag="conductorName", width=16, padx=self.pad['x']['medium'], column=col_i+1, row=row_i+1)
+        self.options.add_label(tag="composerName", text="Composer:", padx=self.pad['x']['small'], column=col_i+2, row=row_i)
+        self.options.add_entry(tag="composerName", width=16, padx=self.pad['x']['medium'], column=col_i+2, row=row_i+1)
         row_i += 1
 
         row_i += 1
         col_i = 0
 
-        self.advancedOptions = BBOption(self.frame, self.backgroundColour)
-        self.advancedOptions.add_label(tag="bellRung", text="Bell Rung (e.g. 2 or n-1):", padx=5, column=col_i, row=row_i)
-        self.advancedOptions.add_entry(tag="bellRung", width=16, padx=10, column=col_i, row=row_i+1)
-        self.advancedOptions.add_label(tag="otherRinger", text="Other Ringer:", padx=5, column=col_i+1, row=row_i)
-        self.advancedOptions.add_entry(tag="otherRinger", width=16, padx=10, column=col_i+1, row=row_i+1)
-        self.advancedOptions.add_label(tag="otherRingersBell", text="Other Ringer's Bell:", padx=5, column=col_i+2, row=row_i)
-        self.advancedOptions.add_entry(tag="otherRingersBell", width=16, padx=10, column=col_i+2, row=row_i+1)
+        self.advancedOptions = BBOption(self.frame, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
+        self.advancedOptions.add_label(tag="bellRung", text="Bell Rung (e.g. 2 or n-1):", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.advancedOptions.add_entry(tag="bellRung", width=16, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
+        self.advancedOptions.add_label(tag="otherRinger", text="Other Ringer:", padx=self.pad['x']['small'], column=col_i+1, row=row_i)
+        self.advancedOptions.add_entry(tag="otherRinger", width=16, padx=self.pad['x']['medium'], column=col_i+1, row=row_i+1)
+        self.advancedOptions.add_label(tag="otherRingersBell", text="Other Ringer's Bell:", padx=self.pad['x']['small'], column=col_i+2, row=row_i)
+        self.advancedOptions.add_entry(tag="otherRingersBell", width=16, padx=self.pad['x']['medium'], column=col_i+2, row=row_i+1)
         row_i += 1
 
         row_i += 1
         col_i = 0
-        self.advancedOptions.add_label(tag="compDetails", text="Composition Details:", padx=5, column=col_i, row=row_i)
-        self.advancedOptions.add_entry(tag="compDetails", width=16, padx=10, column=col_i, row=row_i+1)
+        self.advancedOptions.add_label(tag="compDetails", text="Composition Details:", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.advancedOptions.add_entry(tag="compDetails", width=16, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
         row_i += 1
 
         row_i += 1
         col_i = 0
-        self.advancedOptions.add_label(tag="footnote", text="Footnote (Contains Word):", padx=5, column=col_i, row=row_i)
-        self.advancedOptions.add_entry(tag="footnote", width=16, padx=10, column=col_i, row=row_i+1)
+        self.advancedOptions.add_label(tag="footnote", text="Footnote (Contains Word):", padx=self.pad['x']['small'], column=col_i, row=row_i)
+        self.advancedOptions.add_entry(tag="footnote", width=16, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
 
         row_i -= 3
         col_i = 1
-        self.advancedOptions.add_checkbox(tag="withPhoto", text="With Photo", column=col_i, row=row_i+1)
-        self.advancedOptions.add_checkbox(tag="withComposition", text="With Composition", column=col_i, row=row_i+2)
-        self.advancedOptions.add_checkbox(tag="machineReadableComposition", text="Machine-Readable Composition", column=col_i, row=row_i+3)
-        self.advancedOptions.add_checkbox(tag="excludedNonCompliantPerformances", text="Exclude Non-Compliant Performances", column=col_i, row=row_i+4)
-        self.advancedOptions.add_checkbox(tag="ringerIsConductor", text="Ringer is Conductor", column=col_i, row=row_i+5)
-        self.advancedOptions.add_checkbox(tag="ringerIsStrapper", text="Ringer is Strapper", column=col_i, row=row_i+6)
+        self.advancedOptions.add_checkbox(tag="withPhoto", text="With Photo", padx=self.pad['x']['small'], column=col_i, row=row_i+1)
+        self.advancedOptions.add_checkbox(tag="withComposition", text="With Composition", padx=self.pad['x']['small'], column=col_i, row=row_i+2)
+        self.advancedOptions.add_checkbox(tag="machineReadableComposition", text="Machine-Readable Composition", padx=self.pad['x']['small'], column=col_i, row=row_i+3)
+        self.advancedOptions.add_checkbox(tag="excludedNonCompliantPerformances", text="Exclude Non-Compliant Performances", padx=self.pad['x']['small'], column=col_i, row=row_i+4)
+        self.advancedOptions.add_checkbox(tag="ringerIsConductor", text="Ringer is Conductor", padx=self.pad['x']['small'], column=col_i, row=row_i+5)
+        self.advancedOptions.add_checkbox(tag="ringerIsStrapper", text="Ringer is Strapper", padx=self.pad['x']['small'], column=col_i, row=row_i+6)
         row_i += 6
 
         row_i -= 1
         col_i = 0
-        self.advancedOptions.add_label(tag="orderBy", text="Order By:", padx=5, column=col_i, row=row_i)
+        self.advancedOptions.add_label(tag="orderBy", text="Order By:", padx=self.pad['x']['small'], column=col_i, row=row_i)
         menuOptions = ["Date Rung", "Date Submitted", "Place", "Length",
                        "Duration", "Peal Speed", "Method (or Title)",
                        "Score From Likes", "Number of Likes", "Performance Views"]
-        self.advancedOptions.add_combobox(tag="orderByMenu", menuOptions=menuOptions, width=15, column=col_i, row=row_i+1)
+        self.advancedOptions.add_combobox(tag="orderByMenu", menuOptions=menuOptions, width=15, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
         #self.advancedOptions.add_checkbox(tag="orderByDateRung", text="Date Rung", column=col_i+1, row=row_i+1)
         #self.advancedOptions.add_checkbox(tag="orderByDateSubmitted", text="Date Submitted", column=col_i, row=row_i+1)
         #self.advancedOptions.add_checkbox(tag="orderByPlace", text="Place", column=col_i+1, row=row_i+2)
@@ -843,7 +949,7 @@ class BB(tk.Frame):
         #self.advancedOptions.add_checkbox(tag="orderByPerformanceViews", text="Performance Views", column=col_i, row=row_i+5)
         row_i += 1#1
 
-        self.advancedOptions.add_checkbox(tag="reverseResults", text="Reverse Order of Results", checkState=True, column=col_i, row=row_i+1)
+        self.advancedOptions.add_checkbox(tag="reverseResults", text="Reverse Order of Results", checkState=True, padx=self.pad['x']['small'], column=col_i, row=row_i+1)
 
     def populate_downloadOptions(self):
         """
@@ -852,38 +958,44 @@ class BB(tk.Frame):
         import os
         col_i = 4
         row_i = 0
-        self.downloadOptions = BBOption(self.frame, self.backgroundColour)
-        self.downloadOptions.add_label(tag="downloadOptions", text="Download Options:", font=("Arial Bold", 16), padx=0, column=col_i, row=row_i, columnspan=4)
+        columnSpan_max = 4
+        self.downloadOptions = BBOption(self.frame, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
+        self.downloadOptions.add_label(tag="downloadOptions", text="Download Options:", font=self.font_medium, padx=self.pad['x']['small'],
+                                       column=col_i, row=row_i, columnspan=columnSpan_max)
         row_i += 1
 
-        self.downloadOptions.add_label(tag="savePath", text="Save Path and File Name:", padx=0, column=col_i, row=row_i, columnspan=4)
-        self.downloadOptions.add_entry(tag="savePath", sanatiseEntry=False, width=56, padx=10, column=col_i, row=row_i+1, columnspan=4)
+        self.downloadOptions.add_label(tag="savePath", text="Save Path and File Name:", padx=self.pad['x']['small'], column=col_i, row=row_i, columnspan=columnSpan_max)
+        self.downloadOptions.add_entry(tag="savePath", sanatiseEntry=False, width=56, padx=self.pad['x']['medium'], column=col_i, row=row_i+1, columnspan=columnSpan_max)
         self.downloadOptions.entry["savePath"].set(self.programDirectory)
         row_i += 2
 
         #self.browseDirButton = BrowseButton(self.frame, self.downloadOptions, text="Select Path", startingFileName=self.programDirectory, browseType="browsePath",
         #                                    command=self.downloadOptions.entry["savePath"].set,
         #                                    background=self.backgroundColour,
-        #                                    pady=5,
+        #                                    pady=self.pad['y']['small'],
         #                                    column=col_i, row=row_i)
         self.browseFileButton = BrowseButton(self.frame, self.downloadOptions, text="Select Path and Filename", startingFileName=self.programDirectory, browseType="selectFile",
                                              command=self.downloadOptions.entry["savePath"].set,
                                              background=self.backgroundColour,
-                                             pady=5,
-                                             column=col_i, row=row_i, columnspan=4)
-        self.downloadOptions.add_checkbox(tag="lengthAutomaticallyOnEndOfFilename", text='Length on end of filename (e.g. "Name_allLengths.pdf")', checkState=True, column=col_i, row=row_i+1, columnspan=4)
+                                             padx=self.pad['x']['medium'],
+                                             pady=self.pad['y']['small'],
+                                             column=col_i, row=row_i, columnspan=columnSpan_max)
+        self.downloadOptions.add_checkbox(tag="lengthAutomaticallyOnEndOfFilename", text='Length on end of filename (e.g. "Name_allLengths.pdf")', checkState=True,
+                                          padx=self.pad['x']['small'], column=col_i, row=row_i+1, columnspan=columnSpan_max)
         row_i += 1
 
-        self.downloadOptions.add_checkbox(tag="downloadPDF", text="Download as PDF", checkState=True, column=col_i, row=row_i+1, columnspan=1)
-        self.downloadOptions.add_checkbox(tag="downloadCSV", text="Download as CSV", checkState=True, column=col_i+1, row=row_i+1, columnspan=1)
+        self.downloadOptions.add_checkbox(tag="downloadPDF", text="Download as PDF", checkState=True, padx=self.pad['x']['small'],
+                                          column=col_i, row=row_i+1, columnspan=1)
+        self.downloadOptions.add_checkbox(tag="downloadCSV", text="Download as CSV", checkState=True, padx=self.pad['x']['small'],
+                                          column=col_i+1, row=row_i+1, columnspan=1)
         row_i += 2
 
-        self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download, column=col_i, row=row_i,
-                                        columnspan=1)
+        self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download,
+                                        padx=self.pad['x']['medium'],column=col_i, row=row_i, columnspan=1)
         row_i += 1
 
-        self.info_text = Text(self.frame, startingText=self.programTitle, column=col_i, row=row_i, width=82, height=38,
-                              columnspan=4, rowspan=23, padx=10, pady=10, sticky="NESW")
+        self.info_text = Text(self.frame, startingText=self.programTitle, column=col_i, row=row_i, width=self.outputWindow_width, height=self.outputWindow_height,
+                              columnspan=columnSpan_max, rowspan=23, padx=self.pad['x']['small'], pady=self.pad['y']['medium'], sticky="NESW")
 
     def read_std_out(self):
         """Put stdout messages into the info_box. Called once, auto-refreshes"""
