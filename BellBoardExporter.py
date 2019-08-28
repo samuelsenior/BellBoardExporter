@@ -788,9 +788,9 @@ class BB(tk.Frame):
             root.state("zoomed")
     def _windowSizeState_linux(self):
         if self.fullScreen == True:
-            root.attributes('-zoomed', True)
+            root.attributes('-fullscreen', self.fullScreen)
         else:
-            root.state("zoomed")
+            root.attributes('-zoomed', True)
     def _windowSizeState_other(self):
         if self.fullScreen == True:
             root.attributes('-fullscreen', self.fullScreen)
