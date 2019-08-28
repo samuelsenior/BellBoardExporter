@@ -22,7 +22,9 @@ class Text():
         self.columnspan=columnspan
         self.rowspan=rowspan
 
-        self.info_text = tk.Text(frame, cursor="", bg=self.background, width=self.width, height=self.height)
+        self.info_text = tk.Text(frame, cursor="",
+                                 #highlightbackground=self.background,
+                                 bg=self.background, width=self.width, height=self.height)
         self.info_text.insert(END, self.startingText+"\n")
         self.info_text.config(state=DISABLED)
         self.info_text.grid(column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan, padx=self.padx, pady=self.pady)
@@ -52,7 +54,8 @@ class Label():
         self.rowspan = rowspan
         self.sticky = sticky
 
-        self.label = tk.Label(frame, text=self.text, font=self.font, fg=self.foreground, bg=self.background, width=self.width, height=self.height)
+        self.label = tk.Label(frame, text=self.text, font=self.font,
+                              highlightbackground=self.background, fg=self.foreground, bg=self.background, width=self.width, height=self.height)
         self.label.grid(padx=self.padx, pady=self.pady,
                         column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
                         sticky=self.sticky)
@@ -87,7 +90,8 @@ class LabelFrame():
         self.rowspan = rowspan
         self.sticky = sticky
 
-        self.label = tk.LabelFrame(frame, text=self.text, font=self.font, fg=self.foreground, bg=self.background, width=self.width, height=self.height)
+        self.label = tk.LabelFrame(frame, text=self.text, font=self.font,
+                                   highlightbackground=self.background, fg=self.foreground, bg=self.background, width=self.width, height=self.height)
         self.label.grid(padx=self.padx, pady=self.pady,
                         column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
                         sticky=self.sticky)
@@ -123,7 +127,8 @@ class Entry():
         self.entryValue = textVariable
         self.unsanatisedEntryValue = textVariable
 
-        self.entry = tk.Entry(frame, textvariable=self.entryValue, width=self.width, state=self.state, foreground=self.foreground, background=self.background,)
+        self.entry = tk.Entry(frame, textvariable=self.entryValue, width=self.width, state=self.state,
+                              highlightbackground=self.background, foreground=self.foreground, background=self.background,)
         self.entry.grid(padx=self.padx, pady=self.pady,
                         column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
                         sticky=self.sticky)
@@ -200,7 +205,7 @@ class Checkbutton():
         self.chk_state_var = tk.BooleanVar(value=checkState)
         self.checkbox = tk.Checkbutton(frame, text=self.text, variable=self.chk_state_var,
                                        onvalue=True, offvalue=False,
-                                       foreground=self.foreground, background=self.background,
+                                       highlightbackground=self.background, foreground=self.foreground, background=self.background,
                                        command=self.cb)
         self.checkbox.grid(padx=self.padx, pady=self.pady,
                            column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan,
@@ -343,7 +348,8 @@ class BrowseButton():
         else:
             print("Error: incorrect browseType passed into BrowseButton")
 
-        button = Button(frame, options, tag=self.tag, text=self.text, background=self.background, foreground=self.foreground,
+        button = Button(frame, options, tag=self.tag, text=self.text,
+                        background=self.background, foreground=self.foreground,
                         command=self.clickedFunction,
                         padx=self.padx, pady=self.pady,
                         column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan, sticky=self.sticky)
@@ -632,7 +638,8 @@ class BB(tk.Frame):
             self.fullScreen = False
             self.windowSizeState = self._windowSizeState_windows
         elif system() == "Linux":
-            self.font_large = ("Arial Bold", 24)
+            import tkinter.font
+            self.font_large = tkinter.font.Font(family="Arial", size=30, weight="bold")#("Helvetica", 24)
             self.font_medium = ("Arial Bold", 16)
             self.font_normal = ("Arial Bold", 14)
             self.font_small = ("Arial", 12)
