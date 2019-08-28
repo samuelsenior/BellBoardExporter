@@ -10,7 +10,7 @@ class Text():
                  background="grey",
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
-        from tkinter import ttk, DISABLED, NORMAL, END
+        from tkinter import DISABLED, NORMAL, END
         self.startingText = startingText
         self.width=width
         self.height=height
