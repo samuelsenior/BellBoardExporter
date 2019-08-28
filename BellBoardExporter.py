@@ -22,7 +22,7 @@ class Text():
         self.columnspan=columnspan
         self.rowspan=rowspan
 
-        self.info_text = tk.Text(frame, bg=self.background, width=self.width, height=self.height)
+        self.info_text = tk.Text(frame, cursor="", bg=self.background, width=self.width, height=self.height)
         self.info_text.insert(END, self.startingText+"\n")
         self.info_text.config(state=DISABLED)
         self.info_text.grid(column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan, padx=self.padx, pady=self.pady)
