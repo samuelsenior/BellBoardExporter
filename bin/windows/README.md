@@ -1,3 +1,3 @@
-The folder "x86" contains the executable for 32-bit Windows and the folder "x86-64" contains the executable for 64-bit Windows.
+The folder "x86" contains the 32-bit Windows executable and the folder "x86-64" contains the 64-bit Windows executable.
 
-If you're not sure which one to use try the 64-bit version first and if it doesn't work then try the 32-bit version.
+If you're not sure which one to use try the 64-bit version first and then the 32-bit version.
