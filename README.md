@@ -13,5 +13,11 @@ Each ringing length selected downloads as a seperate file, with the respective l
 * requests (installed via pip)
 * pypdf2 (installed via pip)
 
+## Requirements to build the executables via the build scripts
+* Python 3
+* requests (installed via pip)
+* pypdf2 (installed via pip)
+* pyinstaller (installed via pip)
+
 #
 Comments, feedback, and suggestions are all very welcome, just send an email to the address on my GitHub profile.
