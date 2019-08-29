@@ -638,8 +638,7 @@ class BB(tk.Frame):
             self.fullScreen = False
             self.windowSizeState = self._windowSizeState_windows
         elif system() == "Linux":
-            import tkinter.font
-            self.font_large = tkinter.font.Font(family="Arial", size=30, weight="bold")#("Helvetica", 24)
+            self.font_large = ("Arial Bold", 24)
             self.font_medium = ("Arial Bold", 16)
             self.font_normal = ("Arial Bold", 14)
             self.font_small = ("Arial", 12)
@@ -679,8 +678,6 @@ class BB(tk.Frame):
         tk.Frame.__init__(self, root)
         root.configure(background=self.backgroundColour)
         #root.geometry("")
-        self.screenWidth, self.screenHeight = root.winfo_screenwidth(), root.winfo_screenheight()
-        root.geometry("%dx%d+0+0" % (self.screenWidth, self.screenHeight))
         self.windowSizeState()
         root.title(self.programTitle)
 
@@ -787,20 +784,29 @@ class BB(tk.Frame):
         if self.fullScreen == True:
             root.attributes('-fullscreen', self.fullScreen)
         else:
+            self.screenWidth, self.screenHeight = root.winfo_screenwidth(), root.winfo_screenheight()
+            root.geometry("%dx%d+0+0" % (self.screenWidth, self.screenHeight))
             root.state("zoomed")
     def _windowSizeState_mac(self):
         if self.fullScreen == True:
             root.attributes('-fullscreen', self.fullScreen)
+            self.screenWidth, self.screenHeight = root.winfo_screenwidth(), root.winfo_screenheight()
+            #root.geometry("%dx%d+0+0" % (self.screenWidth, self.screenHeight))
+            root.geometry("")
         else:
             root.state("zoomed")
     def _windowSizeState_linux(self):
         if self.fullScreen == True:
             root.attributes('-fullscreen', self.fullScreen)
+            self.screenWidth, self.screenHeight = root.winfo_screenwidth(), root.winfo_screenheight()
+            root.geometry("%dx%d+0+0" % (self.screenWidth, self.screenHeight))
         else:
             root.attributes('-zoomed', True)
     def _windowSizeState_other(self):
         if self.fullScreen == True:
             root.attributes('-fullscreen', self.fullScreen)
+            self.screenWidth, self.screenHeight = root.winfo_screenwidth(), root.winfo_screenheight()
+            root.geometry("%dx%d+0+0" % (self.screenWidth, self.screenHeight))
         else:
             root.state("zoomed")
 
