@@ -678,7 +678,7 @@ class BB(tk.Frame):
     The BB (BellBoard) class.
     """
     def __init__(self, root):
-        self.programTitle = "Bell Board Exporter - v1.0.0"
+        self.programTitle = "Bell Board Exporter - v1.1.0"
 
         if system() == "Windows":
             self.font_large = ("Arial Bold", 18)
