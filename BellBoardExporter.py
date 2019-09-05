@@ -1,5 +1,20 @@
 import tkinter as tk
+from tkinter import DISABLED, NORMAL, END
+from tkinter import filedialog
 from tkinter import ttk
+
+import os
+from platform import system
+import sys
+
+import threading
+from threading import Thread
+
+import queue
+
+import requests
+from PyPDF2 import PdfFileReader, PdfFileMerger
+import io
 
 
 class Text():
@@ -10,7 +25,6 @@ class Text():
                  background="grey",
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
-        from tkinter import DISABLED, NORMAL, END
         self.startingText = startingText
         self.width=width
         self.height=height
@@ -107,7 +121,8 @@ class Entry():
     """
     The Entry class, a custom class that wraps around a new instance of a tkinter Entry widget.
     """
-    def __init__(self, frame, textVariable="", sanatiseEntry=True, width=None, state="normal", foreground="black", background="white",##3E4149",
+    def __init__(self, frame, textVariable="", sanatiseEntry=True, width=None, state="normal",
+                 foreground="black", background="white",##3E4149",
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -168,7 +183,6 @@ class Entry():
         """
         Set the value of the Entry to the given value, textVariable.
         """
-        from tkinter import END
         self.entryValue = textVariable
         self.unsanatisedEntryValue = self.entryValue
         self.entry.delete(0, END)
@@ -179,14 +193,14 @@ class Entry():
         """
         Print the current value of the Entry.
         """
-        #self.update()
         print(self.entryValue)
 
 class Checkbutton():
     """
     The Checkbutton class, a custom class that wraps around a new instance of a tkinter Checkbutton widget.
     """
-    def __init__(self, frame, tag=None, text=None, checkState=False, foreground="black", background="white",
+    def __init__(self, frame, tag=None, text=None, checkState=False, state="normal",
+                 foreground="black", background="white",
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -236,7 +250,8 @@ class Button():
     """
     The Button class, a custom class that wraps around a new instance of a tkinter Button widget.
     """
-    def __init__(self, frame, options, tag=None, text=None, foreground="black", background="white", command=None,
+    def __init__(self, frame, options, tag=None, text=None, state="normal",
+                 foreground="black", background="white", command=None,
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -273,7 +288,8 @@ class Combobox():
     """
     The Combobox class, a custom class that wraps around a new instance of a tkinter Combobox widget.
     """
-    def __init__(self, frame, tag=None, menuOptions=None, width=None, foreground="black", background="white",
+    def __init__(self, frame, tag=None, menuOptions=None, width=None, state="normal",
+                 foreground="black", background="white",
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
 
@@ -317,8 +333,10 @@ class Combobox():
             print("Warning: tag with unexpected length: {}".format(self.tag))
 
 class BrowseButton():
-    def __init__(self, frame, options, tag=None, browseType="browsePath", text="", startingFileName="", title="",
+    def __init__(self, frame, options, tag=None,
+                 browseType="browsePath", text="", startingFileName="", title="",
                  command=None,
+                 state="normal",
                  width=None, foreground="black", background="white",
                  padx=0, pady=0,
                  column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
@@ -329,6 +347,7 @@ class BrowseButton():
         self.fileName = startingFileName
         self.title = title
         self.extraCommand = command
+        self.state = state
         self.width = width
         self.foreground = foreground
         self.background = background
@@ -348,16 +367,14 @@ class BrowseButton():
         else:
             print("Error: incorrect browseType passed into BrowseButton")
 
-        button = Button(frame, options, tag=self.tag, text=self.text,
-                        background=self.background, foreground=self.foreground,
-                        command=self.clickedFunction,
-                        padx=self.padx, pady=self.pady,
-                        column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan, sticky=self.sticky)
+        self.button = Button(frame, options, tag=self.tag, text=self.text,
+                             background=self.background, foreground=self.foreground,
+                             command=self.clickedFunction,
+                             state=self.state,
+                             padx=self.padx, pady=self.pady,
+                             column=self.column, row=self.row, columnspan=self.columnspan, rowspan=self.rowspan, sticky=self.sticky)
 
     def _askDirectory(self):
-        from tkinter import filedialog
-        import os
-
         fileNameTmp = os.path.join(filedialog.askdirectory(initialdir=self.fileName, title=self.title), "")
         if fileNameTmp != "" and not isinstance(fileNameTmp, tuple):
             self.fileName = fileNameTmp
@@ -367,9 +384,6 @@ class BrowseButton():
             print("Directory Selected: {}".format(self.fileName))
 
     def _selectFile(self):
-        from tkinter import filedialog
-        import os
-        
         fileNameTmp = filedialog.asksaveasfilename(initialdir=self.fileName, title=self.title)#, filetypes=self.fileTypes)
         if fileNameTmp != "" and not isinstance(fileNameTmp, tuple):
             self.fileName = fileNameTmp
@@ -389,8 +403,9 @@ class BBOption():
     The BBOption class (BellBoardOption). A class the holds all the tkinter widgets used within the given frame,
     for easy access to each one, and their values etc.
     """
-    def __init__(self, frame, background, fontDefault, pad):
+    def __init__(self, frame, state, background, fontDefault, pad):
         self.frame = frame
+        self.state = state
         self.backgroundColour = background
         del background
         self.fontDefault = fontDefault
@@ -399,7 +414,20 @@ class BBOption():
         self.entry = {}
         self.checkbox = {}
         self.button = {}
+        self.browseButton = {}
         self.combobox = {}
+
+    def updateState(self, state):
+        for ent in self.entry:
+            self.entry[ent].entry.config(state=state)
+        for chk in self.checkbox:
+            self.checkbox[chk].checkbox.config(state=state)
+        for btn in self.button:
+            self.button[btn].button.config(state=state)
+        for btn in self.browseButton:
+            self.browseButton[btn].button.button.config(state=state)
+        for cbx in self.combobox:
+            self.combobox[cbx].combobox.config(state=state)
 
     def add_label(self, tag, text=None, font=None,
                   width=None, height=None,
@@ -446,10 +474,10 @@ class BBOption():
         self.label[tag] = LabelFrame(self.frame, text=text, font=font,
                                      width=width, height=height,
                                      foreground=foreground, background=background,
-                                    padx=padx, pady=pady,
-                                    column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
+                                     padx=padx, pady=pady,
+                                     column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
-    def add_entry(self, tag, sanatiseEntry=True, width=None, state="normal",
+    def add_entry(self, tag, sanatiseEntry=True, width=None,
                   foreground="black", background="white", padx=None, pady=None,
                   column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
         """
@@ -461,7 +489,8 @@ class BBOption():
         if pady is None:
             pady = self.pad['y']['none']
             
-        self.entry[tag] = Entry(self.frame, sanatiseEntry=sanatiseEntry, width=width, state=state, foreground=foreground, background=background,
+        self.entry[tag] = Entry(self.frame, sanatiseEntry=sanatiseEntry, width=width, state=self.state,
+                                foreground=foreground, background=background,
                                 padx=padx, pady=pady,
                                 column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
@@ -481,6 +510,7 @@ class BBOption():
             pady = self.pad['y']['none']
 
         self.checkbox[tag] = Checkbutton(self.frame, tag=tag, text=text, checkState=checkState,
+                                         state=self.state,
                                          foreground=foreground, background=background,
                                          padx=padx, pady=pady,
                                          column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
@@ -501,8 +531,32 @@ class BBOption():
             pady = self.pad['y']['none']
 
         self.button[tag] = Button(self.frame, tag=tag, options=options, text=text, command=command,
+                                  state=self.state,
                                   foreground=foreground, background=background, padx=padx, pady=pady,
                                   column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
+
+    def add_browseButton(self, tag, options, text=None, startingFileName=None, browseType="selectFile",
+                         command=None,
+                         background=None,
+                         padx=None,
+                         pady=None,
+                         column=None, row=None, columnspan=1, rowspan=1, sticky="W"):
+
+        if background is None:
+            background = self.backgroundColour
+
+        if padx is None:
+            padx = self.pad['x']['none']
+        if pady is None:
+            pady = self.pad['y']['none']
+
+        self.browseButton[tag] = BrowseButton(self.frame, options, text=text, startingFileName=startingFileName, browseType=browseType,
+                                              command=command,
+                                              state=self.state,
+                                              background=background,
+                                              padx=padx,
+                                              pady=pady,
+                                              column=column, row=row, columnspan=columnspan, rowspan=rowspan, sticky=sticky)
 
     def add_combobox(self, tag, menuOptions=None, width=None,
                      foreground="black", background=None, padx=None, pady=None,
@@ -520,6 +574,7 @@ class BBOption():
             pady = self.pad['y']['none']
 
         self.combobox[tag] = Combobox(self.frame, tag=tag, menuOptions=menuOptions, width=width,
+                                      state=self.state,
                                       foreground=foreground, background=background, padx=padx, pady=pady,
                                       column=column, row=row, columnspan=columnspan, rowspan=rowspan,
                                       sticky=sticky)
@@ -543,10 +598,13 @@ class Buffer():
     """
     def __init__(self):
         self.buf = ""
+        self.buf_length = 0
+
     def read(self):
         """
         Read the buffer.
         """
+        self.buf_length = len(self.buf)
         return self.buf
 
     def flush(self):
@@ -559,7 +617,8 @@ class Buffer():
         """
         Clear the buffer.
         """
-        self.buf = ""
+        self.buf = self.buf[self.buf_length:]
+        #self.buf = ""
 
     def write(self, value):
         """
@@ -605,7 +664,7 @@ class Logger():
         self.after_cancel(self.after_id)
 
     def _write(self):
-        # Printer to file here
+        # Print to file here
         if self.buffer != "" and self.logging == True:
             with open(self.logFileName, 'a') as logFile:
                 logFile.write(self.buffer)
@@ -619,11 +678,6 @@ class BB(tk.Frame):
     The BB (BellBoard) class.
     """
     def __init__(self, root):
-
-        from platform import system
-        import sys
-        from threading import Thread
-
         self.programTitle = "Bell Board Exporter - v1.0.0"
 
         if system() == "Windows":
@@ -728,8 +782,9 @@ class BB(tk.Frame):
         #self.frame.grid(row=0, column=0, sticky="EW")
         #self.frame.pack()
 
+        self.state = "normal"
         self.populate()
-        self.downloader = Downloader(self.frame, self.options, self.advancedOptions)#, self.download)
+        self.downloader = Downloader(self.frame, self.options, self.advancedOptions)
         self.populate_downloadOptions()
         self.downloader.update_Download(self.downloadOptions)
 
@@ -744,11 +799,9 @@ class BB(tk.Frame):
                               logFileName=self.programDirectory+"log.txt", logWriteRate=500)
             self.log.start()
             # Set stdout to output to buf
-            # This allows us to display a virtual terminal
-            # that intercepts print(info) statements from imported classes
+            # This allows us to display a virtual terminal that intercepts print statements from imported classes
             sys.stdout = self.buf
-            # Check and refresh buf -- see function for details
-            # Could add extra bit in buf class that on write also writes to a log file
+            # Check and refresh buf
             self.print_rate = 150
             self.print_rate_original = self.print_rate
             self.read_std_out()
@@ -756,10 +809,6 @@ class BB(tk.Frame):
         self.printing_thread.start()
 
     def _findProgramDirectory(self):
-        import os
-        import sys
-        from platform import system
-
         # determine if application is a script file or frozen exe
         if getattr(sys, 'frozen', False):
             application_path = os.path.dirname(sys.executable)
@@ -848,7 +897,7 @@ class BB(tk.Frame):
                           padx=self.pad['x']['small'], column=col_i, row=row_i, columnspan=2)
         row_i += 1
         col_i = 0
-        self.options = BBOption(self.frame, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
+        self.options = BBOption(self.frame, self.state, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
         self.options.add_label(tag="association", text="Association:", padx=self.pad['x']['small'], column=col_i, row=row_i, columnspan=2)
         self.options.add_entry(tag="association", width=32, padx=self.pad['x']['medium'], column=col_i, row=row_i+1, columnspan=2)
         row_i += 1
@@ -913,7 +962,7 @@ class BB(tk.Frame):
         row_i += 1
         col_i = 0
 
-        self.advancedOptions = BBOption(self.frame, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
+        self.advancedOptions = BBOption(self.frame, self.state, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
         self.advancedOptions.add_label(tag="bellRung", text="Bell Rung (e.g. 2 or n-1):", padx=self.pad['x']['small'], column=col_i, row=row_i)
         self.advancedOptions.add_entry(tag="bellRung", width=16, padx=self.pad['x']['medium'], column=col_i, row=row_i+1)
         self.advancedOptions.add_label(tag="otherRinger", text="Other Ringer:", padx=self.pad['x']['small'], column=col_i+1, row=row_i)
@@ -968,11 +1017,10 @@ class BB(tk.Frame):
         """
         Populate the tkinter frame with the download options.
         """
-        import os
         col_i = 4
         row_i = 0
         columnSpan_max = 4
-        self.downloadOptions = BBOption(self.frame, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
+        self.downloadOptions = BBOption(self.frame, self.state, self.backgroundColour, fontDefault=self.font_normal, pad=self.pad)
         self.downloadOptions.add_label(tag="downloadOptions", text="Download Options:", font=self.font_medium, padx=self.pad['x']['small'],
                                        column=col_i, row=row_i, columnspan=columnSpan_max)
         row_i += 1
@@ -987,12 +1035,12 @@ class BB(tk.Frame):
         #                                    background=self.backgroundColour,
         #                                    pady=self.pad['y']['small'],
         #                                    column=col_i, row=row_i)
-        self.browseFileButton = BrowseButton(self.frame, self.downloadOptions, text="Select Path and Filename", startingFileName=self.programDirectory, browseType="selectFile",
-                                             command=self.downloadOptions.entry["savePath"].set,
-                                             background=self.backgroundColour,
-                                             padx=self.pad['x']['medium'],
-                                             pady=self.pad['y']['small'],
-                                             column=col_i, row=row_i, columnspan=columnSpan_max)
+        self.downloadOptions.add_browseButton(tag="browseFileButton", options=self.downloadOptions, text="Select Path and Filename", startingFileName=self.programDirectory, browseType="selectFile",
+                                              command=self.downloadOptions.entry["savePath"].set,
+                                              background=self.backgroundColour,
+                                              padx=self.pad['x']['medium'],
+                                              pady=self.pad['y']['small'],
+                                              column=col_i, row=row_i, columnspan=columnSpan_max)
         self.downloadOptions.add_checkbox(tag="lengthAutomaticallyOnEndOfFilename", text='Length on end of filename (e.g. "Name_allLengths.pdf")', checkState=True,
                                           padx=self.pad['x']['small'], column=col_i, row=row_i+1, columnspan=columnSpan_max)
         row_i += 1
@@ -1003,7 +1051,7 @@ class BB(tk.Frame):
                                           column=col_i+1, row=row_i+1, columnspan=1)
         row_i += 2
 
-        self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download,
+        self.downloadOptions.add_button(tag="downloadbutton", text="Download", options=self.options, command=self.downloader.download_start,
                                         padx=self.pad['x']['medium'],column=col_i, row=row_i, columnspan=1)
         row_i += 1
 
@@ -1019,14 +1067,14 @@ class BB(tk.Frame):
         self.after(self.print_rate, self.read_std_out)  # Call this again soon
 
     def add_info(self, info):
-        """Add informational message to info box. Use instead of print().
+        """
+        Add informational message to info box. Use instead of print().
         arguments: (str) info
-        effects: add line with info printed to screen in info box"""
-        from tkinter import DISABLED, NORMAL, END
+        effects: add line with info printed to screen in info box
+        """
 
         # A basic bit of sanatising:
         info = info.rstrip()
-
         info = str(info) + "\n"
 
         if self.log.logging == True:
@@ -1042,6 +1090,85 @@ class BB(tk.Frame):
         Reset the print rate to its original value.
         """
         self.print_rate = self.print_rate_original
+
+
+class DownloadWorkerThread(threading.Thread):
+    """
+    A worker thread to download the results of a specific BellBoard search.
+
+    Input is done by placing a list of the URL and file save name into the queue
+    passed in download_q.
+
+    The thread is stopped by calling its join() method.
+    """
+    def __init__(self, download_q):
+        super(DownloadWorkerThread, self).__init__()
+        self.download_q = download_q
+        self.stoprequest = threading.Event()
+
+    def run(self):
+        """
+        As long as we weren't asked to stop, try to take new tasks from the queue. The tasks are
+        taken with a blocking 'get', so no CPU cycles are wasted while waiting. Also, 'get' is
+        given a timeout, so stoprequest is always checked, even if there's nothing in the queue.
+        """
+        while not self.stoprequest.isSet():
+            try:
+                self.url, self.saveName = self.download_q.get(True, 0.05)
+                self._dowloadFile()
+            except queue.Empty:
+                continue
+
+    def join(self, timeout=None):
+        self.stoprequest.set()
+        super(DownloadWorkerThread, self).join(timeout)
+
+    def _dowloadFile(self):
+        """
+        Function to do the actual download. Kept seperate to allow for multithreading.
+        """
+        maxDownloadAttmpts = 5
+
+        page = 1
+        paging = True
+        while paging:
+            downloadAttmptCount = 0
+            while downloadAttmptCount < maxDownloadAttmpts:
+                try:
+                    myfile = requests.get(self.url+"&page={}".format(str(page)))
+                    downloadAttmptCount = maxDownloadAttmpts + 1
+                except requests.exceptions.RequestException as err:
+                    print("Error in downloading file:\n   "+err+"\n   Trying download again...")
+                    downloadAttmptCount += 1
+            if downloadAttmptCount == maxDownloadAttmpts:
+                print("Error: Could not download file in allowed number of attempts, please try again")
+            elif downloadAttmptCount == maxDownloadAttmpts + 1:
+                if myfile.text == "":
+                    paging = False
+                else:
+                    if self.saveName[-3:] == "csv":
+                        if page == 1:
+                            print("Downloading page 1 of BellBoard search results into output CSV")
+                            with open(self.saveName, 'wb') as fileOutput:
+                                fileOutput.write(myfile.content)
+                        else:
+                            print("Merging page {} of BellBoard results into output CSV".format(page))
+                            with open(self.saveName, 'ab') as fileOutput:
+                                fileOutput.write(myfile.content)
+                    elif self.saveName[-3:] == "pdf":
+                        if page == 1:
+                            print("Downloading page 1 of BellBoard search results into output PDF")
+                            with open(self.saveName, 'wb') as fileOutput:
+                                fileOutput.write(myfile.content)
+                        else:
+                            if self.saveName[-3:] == "pdf":
+                                print("Merging page {} of BellBoard results into output PDF".format(page))
+                                merger = PdfFileMerger()
+                                merger.append(PdfFileReader(open(self.saveName, 'rb')))
+                                merger.append(PdfFileReader(io.BytesIO(myfile.content)))
+                                merger.write(self.saveName)
+                    page += 1
+        print("{} downloaded and merged!".format(self.saveName))
 
 
 class Downloader():
@@ -1061,6 +1188,14 @@ class Downloader():
         """
         self.downloadOptions = downloadOptions
 
+    def download_start(self):
+        """
+        Wrapper around download function to allow it to run and wait for all threads to have finished
+        without causing the main window of the program to freeze up.
+        """
+        mainDownloadThread = Thread(target=self.download)
+        mainDownloadThread.start()
+
     def download(self):
         """
         Function to download files. Goes through the download options and downloads files for those options, with a seperate
@@ -1069,6 +1204,10 @@ class Downloader():
         if self.options.entry["ringerName"].get() == "" and self.options.entry["conductorName"].get() == "" and self.options.entry["composerName"].get() == "":
             print('Error: Need at least one of Ringer, Conductor, or Composer to be filled in!')
         else:
+
+            self.options.updateState("disabled")
+            self.advancedOptions.updateState("disabled")
+            self.downloadOptions.updateState("disabled")
 
             self.urlOptions = {"Association":self.options.entry["association"].get(sanatise=False),
                                "From":self.options.entry["dateRungFrom"].get(sanatise=False),
@@ -1182,139 +1321,86 @@ class Downloader():
                     downloading_output_print += "\n     {}: {}".format(key, self.urlOptions[key])
             print(downloading_output_print)
 
+            # Create a single input and a single output queue for all threads.
+            download_q = queue.Queue()
+
+            numberOfFilesToDownload = 0
             print("Files to Download:")
             self.urlBefore = "{}".format(url)
             for length in self.options.checkbox:
+                url_andSaveName = []
                 if self.options.checkbox[length].get() == True:
                     if self.downloadOptions.checkbox["lengthAutomaticallyOnEndOfFilename"].get():
                             lengthName = "_"+length
                     else:
                         lengthName = ""
+                    saveName=self.downloadOptions.entry["savePath"].get()+lengthName
+
                     url += "&length="
                     if length == "allLengths":
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
-                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
-                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
+                        pass
+                        # Pass with addition to URL
                     elif length == "shortTouches":
                         url += "short"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
-                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
-                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "quarters":
                         url += "quarter"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
-                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
-                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "quartersOrLonger":
                         url += "q-or-p"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
-                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
-                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "dateTouches":
                         url += "date"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
-                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
-                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "halfPeals":
                         url += "half"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
-                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
-                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "peals":
                         url += "peal"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
-                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
-                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
                     elif length == "longLengths":
                         url += "long"
-                        self.download_url(url, saveName=self.downloadOptions.entry["savePath"].get()+lengthName,
-                                          downloadPDF=self.downloadOptions.checkbox["downloadPDF"].get(),
-                                          downloadCSV=self.downloadOptions.checkbox["downloadCSV"].get())
 
+                    if self.downloadOptions.checkbox["downloadPDF"].get() == True:
+                        # Download PDF
+                        print("   {}".format(saveName+'.pdf'))
+                        url_andSaveName.append(url+"&fmt="+"pdf")
+                        if saveName[-1] == os.path.join(" ", "")[-1]:
+                            print('   Warning, filename not given, using "bellBoardDefault" instead!')
+                            url_andSaveName.append(saveName+"bellBoardDefault"+".pdf")
+                        else:
+                            url_andSaveName.append(saveName+".pdf")
+                        download_q.put(url_andSaveName)
+                        url_andSaveName = []
+                        numberOfFilesToDownload += 1
+                    if self.downloadOptions.checkbox["downloadCSV"].get() == True:
+                        # Download CSV
+                        print("   {}".format(saveName+'.csv'))
+                        url_andSaveName.append(url+"&fmt="+"csv")
+                        if saveName[-1] == os.path.join(" ", "")[-1]:
+                            print('   Warning, filename not given, using "bellBoardDefault" instead!')
+                            url_andSaveName.append(saveName+"bellBoardDefault"+".csv")
+                        else:
+                            url_andSaveName.append(saveName+".csv")
+                        download_q.put(url_andSaveName)
+                        url_andSaveName = []
+                        numberOfFilesToDownload += 1
                 url = "{}".format(self.urlBefore)
 
-    def download_url(self, url, saveName, downloadPDF=True, downloadCSV=True):
-        """
-        Function to download files, downloads as PDF and/or CSV depending on passed in argumet values.
-        """
-        import os
-        from threading import Thread
+            print("Total number of files to download: {}".format(numberOfFilesToDownload))
 
-        if downloadPDF == True:
-            print("   {}".format(saveName+'.pdf'))
-            if saveName[-1] == os.path.join(" ", "")[-1]:
-                print('   Warning, filename not given, using "bellBoardDefault" instead!')
-                downloadThread_pdf = Thread(target=self._dowloadFile, args=(url+"&fmt="+"pdf", saveName+"bellBoardDefault"+".pdf"))
-            else:
-                downloadThread_pdf = Thread(target=self._dowloadFile, args=(url+"&fmt="+"pdf", saveName+".pdf"))
-            downloadThread_pdf.start()
+            # Create pool of threads
+            pool = [DownloadWorkerThread(download_q=download_q) for i in range(numberOfFilesToDownload)]
 
-        if downloadCSV == True:
-            print("   {}".format(saveName+'.csv'))
-            if saveName[-1] == os.path.join(" ", "")[-1]:
-                print('   Warning, filename not given, using "bellBoardDefault" instead!')
-                downloadThread_csv = Thread(target=self._dowloadFile, args=(url+"&fmt="+"csv", saveName+"bellBoardDefault"+".csv"))
-            else:
-                downloadThread_csv = Thread(target=self._dowloadFile, args=(url+"&fmt="+"csv", saveName+".csv"))
-            downloadThread_csv.start()
+            print("########################\n  --- Download Started ---\n  ########################")
 
-    def _dowloadFile(self, url, saveName):
-        """
-        Function to do the actual download. Kept seperate to allow for multithreading.
-        """
-        import requests
-        from PyPDF2 import PdfFileReader, PdfFileMerger
-        import io
-        
-        maxDownloadAttmpts = 5
+            # Start all threads
+            for thread in pool:
+                thread.start()
 
-        page = 1
-        paging = True
-        while paging:
-            downloadAttmptCount = 0
-            while downloadAttmptCount < maxDownloadAttmpts:
-                try:
-                    myfile = requests.get(url+"&page={}".format(str(page)))
-                    downloadAttmptCount = maxDownloadAttmpts + 1
-                except requests.exceptions.RequestException as err:
-                    print("Error in downloading file:\n   "+err+"\n   Trying download again...")
-                    downloadAttmptCount += 1
-            if downloadAttmptCount == maxDownloadAttmpts:
-                print("Error: Could not download file in allowed number of attempts, please try again")
-            elif downloadAttmptCount == maxDownloadAttmpts + 1:
-                if myfile.text == "":
-                    #print("Warning, empty BellBoard search result page on page {}".format(str(page)))#file: {}".format(saveName))
-                    paging = False
-                else:
-                    if saveName[-3:] == "csv":
-                        if page == 1:
-                            print("Downloading page 1 of BellBoard search results into output CSV")
-                            with open(saveName, 'wb') as fileOutput:
-                                fileOutput.write(myfile.content)
-                            #print("Download of PDF of page 1 of BellBoard search results complete!")
+            # Ask threads to die and wait for them to do it
+            for thread in pool:
+                thread.join()
 
-                        else:
-                            print("Merging page {} of BellBoard results into output CSV".format(page))
-                            with open(saveName, 'ab') as fileOutput:
-                                fileOutput.write(myfile.content)
-                            #print("CSV merging of page {} of BellBoard results complete!".format(page))
-                        #page += 1
-                    elif saveName[-3:] == "pdf":
-                        if page == 1:
-                            print("Downloading page 1 of BellBoard search results into output PDF")
-                            with open(saveName, 'wb') as fileOutput:
-                                fileOutput.write(myfile.content)
-                            #print("Download of PDF of page 1 of BellBoard search results complete!")
-                        else:
-                            if saveName[-3:] == "pdf":
-                                print("Merging page {} of BellBoard results into output PDF".format(page))
-                                merger = PdfFileMerger()
-                                merger.append(PdfFileReader(open(saveName, 'rb')))
-                                merger.append(PdfFileReader(io.BytesIO(myfile.content)))
-                                merger.write(saveName)
-                                #print("PDF merging of page {} of BellBoard results complete!".format(page))
-                    page += 1
-        print("{} downloaded and merged!".format(saveName))
+            print("#########################\n  --- Download Complete ---\n  #########################")
+
+            self.options.updateState("normal")
+            self.advancedOptions.updateState("normal")
+            self.downloadOptions.updateState("normal")
 
 
 if __name__ == "__main__":
